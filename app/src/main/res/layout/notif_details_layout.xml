@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="20dp"
+    android:layout_marginStart="20dp"
+    android:layout_marginTop="6dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/event_notification"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/event_notification_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:checkedButton="@+id/option_none"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/option_none"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:tag="0"
+            android:text="@string/none"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/option_day_before"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:tag="-1440"
+            android:text="@string/_1_day_before"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/option_hour_before"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:tag="-60"
+            android:text="@string/_1_hour_before"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/option_30mins_before"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:tag="-30"
+            android:text="@string/_30_minutes_before"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/option_10mins_before"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:tag="-10"
+            android:text="@string/_10_minutes_before"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/radio_btn_custom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/dummy"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <RadioButton
+            android:id="@+id/txt_custom_notif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:onClick="clickCustomNotification"
+            android:text="@string/custom"
+            android:textSize="15sp" />
+
+    </RadioGroup>
+
+</LinearLayout>

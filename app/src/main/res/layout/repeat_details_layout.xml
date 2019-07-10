@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="20dp"
+    android:layout_marginStart="20dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/event_repeat_mode"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/repeat_mode_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:checkedButton="@+id/no_repeat_radio"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/no_repeat_radio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/only_oncehihine"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/everyday_repeat_radio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/everyday"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/everyweek_repeat_radio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/every_week"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/weekdays_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <CheckBox
+                android:id="@+id/sun"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/sunday"
+                android:text="@string/sunday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/mon"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/monday"
+                android:text="@string/monday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/tue"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/tuesday"
+                android:text="@string/tuesday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/wed"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/wednesday"
+                android:text="@string/wednesday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/thu"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/thursday"
+                android:text="@string/thursday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/fri"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/friday"
+                android:text="@string/friday"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/sat"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_weekday"
+                android:button="@drawable/bg_weekday"
+                android:gravity="center"
+                android:tag="@string/saturday"
+                android:text="@string/saturday"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+
+    </RadioGroup>
+
+</LinearLayout>

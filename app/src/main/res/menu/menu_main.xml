@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_today"
+        android:icon="@drawable/img_today"
+        android:onClick="todayClick"
+        android:title="@string/today"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_notifications_settings"
+        android:icon="@drawable/img_notification"
+        android:onClick="notifSettingsClick"
+        android:title="@string/notifications_settings"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_survey"
+        android:icon="@drawable/icon_survey"
+        android:onClick="surveyClick"
+        android:title="@string/survey"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:icon="@drawable/img_logout"
+        android:onClick="logoutClick"
+        android:title="@string/log_out"
+        app:showAsAction="never" />
+</menu>

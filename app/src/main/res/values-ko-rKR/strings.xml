@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunday">일</string>
+    <string name="monday">월</string>
+    <string name="tuesday">화</string>
+    <string name="wednesday">수</string>
+    <string name="thursday">목</string>
+    <string name="friday">금</string>
+    <string name="saturday">토</string>
+    <string name="daily_notif_question">오늘 새로운 일정이 있으십니까?</string>
+    <string name="sunday_notif_question">일주일동안의 스케쥴을 입력해주세요.</string>
+    <string name="not_evaluated">아직 평가 안함</string>
+    <string name="evaluated">평가 함</string>
+    <string name="sunday_time">전체 일정 입력 시간 (일요일)</string>
+    <string name="every_morning_time">새로운 일정 입력 시간 (매일 오전)</string>
+    <string name="every_evening_time">일정 평가 시간 (매일 저녁)</string>
+    <string name="event_title_hint">제목, 시간, 예상되는 스트레스를 입력하세요</string>
+    <string name="all_day">종일</string>
+    <string name="event_start_time">시작 시간</string>
+    <string name="event_end_time">종료 시간</string>
+    <string name="notification">알림</string>
+    <string name="repeat">반복</string>
+    <string name="anticipated_stress_level">예상되는 스트레스 정도</string>
+    <string name="intervention">스트레스 중재 방안</string>
+    <string name="evaluation">평가</string>
+    <string name="re_evaluation">재평가</string>
+    <string name="none">없음</string>
+    <string name="_10_minutes_before">일정 10분 전</string>
+    <string name="_30_minutes_before">일정 30분 전</string>
+    <string name="_1_hour_before">일정 1시간 전</string>
+    <string name="_1_day_before">일정 1일 전</string>
+    <string name="_30_minutes_after">일정 30분 후</string>
+    <string name="_10_minutes_after">일정 10분 후</string>
+    <string name="_1_hour_after">일정 1시간 후</string>
+    <string name="_1_day_after">일정 하루 후</string>
+    <string name="_30_minutes_after1">30분 후</string>
+    <string name="_10_minutes_after1">10분 후</string>
+    <string name="_1_hour_after1">1시간 후</string>
+    <string name="_1_day_after1">하루 후</string>
+    <string name="custom">사용자 설정…</string>
+    <string name="everyday">매일</string>
+    <string name="every_week">매주</string>
+    <string name="event_repeat_mode">일정이 반복되는 시간을 설정해주세요.</string>
+    <string name="event_notification">일정에 대한 알림을 설정해주세요.</string>
+    <string name="stress_lvl">스트레스 레벨</string>
+    <string name="not_at_all">"없음 "</string>
+    <string name="low">낮음</string>
+    <string name="normal">보통</string>
+    <string name="high">높음</string>
+    <string name="extreme">극심</string>
+    <string name="stress_cause">스트레스를 유발하는 원인이 무엇입니까?</string>
+    <string name="positive">긍정적</string>
+    <string name="negative">부정적</string>
+    <string name="unidentified">잘 모르겠음</string>
+    <string name="stress_type">스트레스가 나에게 어떤 존재입니까?</string>
+    <string name="self_intervention_hint">스트레스를 완화시킬 수 있는 자신만의  중재방법을 만들어보세요.</string>
+    <string name="intervention_scheduling">중재 방안 시간 설정</string>
+    <string name="event">일정</string>
+    <string name="event_completion">일정을 완료하셨나요?</string>
+    <string name="ask_stress_level">실제 일정이 주는 스트레스의 정도는?</string>
+    <string name="expected_stress_level">예상했던 스트레스 레벨</string>
+    <string name="interv_effectiveness">실천하셨다면, 중재방안의 효과는 어떠셨나요?</string>
+    <string name="poor">없음</string>
+    <string name="fair">나쁨</string>
+    <string name="average">보통</string>
+    <string name="good">좋음</string>
+    <string name="excellent">매우좋음</string>
+    <string name="journal">총평</string>
+    <string name="interv_done">설정한 중재방안을 실천하셨나요?</string>
+    <string name="interv_recommendation">다른 사람에게 자신의 중재방법을 공유 또는 추천하고 싶으시다면 체크해주세요</string>
+    <string name="cancel">취소</string>
+    <string name="save">저장</string>
+    <string name="create">생성</string>
+    <string name="interventions">스트레스 중재 방안</string>
+    <string name="only_oncehihine">안 함</string>
+    <string name="before">전</string>
+    <string name="after">후</string>
+
+
+    <string name="app_name">MindForecaster</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month_arrow">Next month arrow</string>
+    <string name="dummy">dummy</string>
+    <string name="today">Today</string>
+    <string name="settings">Settings</string>
+    <string name="event_title">Event title</string>
+    <string name="event_note">Event note (optional)</string>
+    <string name="edit">Edit</string>
+    <string name="delete">삭제</string>
+    <string name="btn_close">Close</string>
+    <string name="more">More</string>
+    <string name="intervention_method">중재방안 등록</string>
+    <string name="self">self</string>
+    <string name="system">system</string>
+    <string name="peer">peer</string>
+    <string name="selected_interv_hint">스트레스를 완화시킬 수 있는 자신만의 중재방안을 만들어보세요</string>
+    <string name="interventions_list_peer">다른 사람들이 추천한 방법들 중에서 하나를 선택해보세요:</string>
+    <string name="interventions_list_system">아래의 다양한 활동들 중에서 하나를 선택해보세요:</string>
+    <string name="expand_button">Expand button</string>
+    <string name="arrow_down">Arrow down</string>
+    <string name="clock_image">Clock image</string>
+    <string name="repeat_notification">Repeat / Notification</string>
+    <string name="share">Share</string>
+    <string name="feedback">Feedback</string>
+    <string name="event_details">일정 등록</string>
+    <string name="bad">Bad</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="sign_in">Sign in</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="not_a_member">Not a member yet?</string>
+    <string name="now">now</string>
+    <string name="sign_up_label"><u>Sign up</u></string>
+    <string name="sign_up">Sign up</string>
+    <string name="name">Full name</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="sign_up_now">Sign Up Now</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="signing_up">Signing up…</string>
+    <string name="sunday_long">일요일</string>
+    <string name="text_image">Image of a letter</string>
+    <string name="before_event">Before event</string>
+    <string name="after_ecvent">After ecvent</string>
+    <string name="intervention_reminder_text">%1$s 알림</string>
+    <string name="intervention_reminder_text1">일정 종료 %1$s 알림</string>
+    <string name="log_out">Log out</string>
+    <string name="notifications_settings">Notifications settings</string>
+    <string name="current_event_title">일정: %1$s</string>
+    <string name="current_interv_title">중재방안: %1$s</string>
+    <string name="event_done_check">Current event has been done.</string>
+    <string name="real_stress_level" translatable="false">실제 일정에 대한 스트레스 레벨</string>
+    <string name="stress_incr_reason">스트레스 레벨이 예상한 것 보다 오히려 높아진 이유는 무엇입니까?</string>
+    <string name="stress_incr_title">스트레스 레벨 증가 원인</string>
+    <string name="stress_incr_title1">스트레스 레벨 증가 원인</string>
+    <string name="stress_decr_title">"스트레스 레벨 감소 원인"</string>
+    <string name="stress_decr_reason">스트레스 레벨이 예상한것보다 낮아진 이유는 무엇입니까? </string>
+    <string name="ok">OK</string>
+    <string name="custom_reminder">사용자 알림 설정</string>
+    <string name="custom_recurrence">Custom recurrence</string>
+    <string name="channel_name">Event and Intervention notifications</string>
+    <string name="channel_description">The notifications which user can receive on the specified event time, intervention time, or on a customized notification time in the properties of a particular event.</string>
+    <string name="notif_channel_id">mf-notifs</string>
+    <string name="custom_reminder_hint">최대 20일 전까지 설정 할 수 있습니다.</string>
+    <string name="value">입력</string>
+    <string name="daily_notif_request">오늘 일정에 대해 평가해주세요.</string>
+    <string name="days">일</string>
+    <string name="hours">시</string>
+    <string name="minutes">분</string>
+    <string name="upcoming_event">다가오는 일정</string>
+    <string name="passed_event">지나간 일정</string>
+    <string name="repeat_until">언제까지 반복할까요?</string>
+    <string name="everyday_repeat">%1$s %2$d일까지 매일</string>
+    <string name="everyweek_repeat">%1$s %2$d일까지 매주</string>
+    <string name="notification_event">"%2$s" 일정: %1$s</string>
+    <string name="notification_event_time">%2$s %1$s</string>
+    <string name="tomorrow">내일</string>
+    <string name="result">결과</string>
+    <string name="set_up_reminders">일정 등록 관련 알림 설정</string>
+    <string name="survey_main_txt">Please, complete the each survey</string>
+    <string name="survey">설문조사</string>
+
+    <string name="survey1_title">아래 문항은 지난 한 달 동안 당신의 감정과 생각에 대한 질문입니다 . 각 질문에 대해 얼마나 자주 그러했 는지 비슷하다고 생각되는 것을 하나 골라 번호에 체크해 주십시오.</string>
+    <string name="survey2_title">다음의 각 문장을 읽고 얼마나 그 문항이 당신에게 적용되는지에 따라 가리키는 숫자  0, 1, 2, 3, 4, 5, 에 체크하세요. 정답이나 오답은 없습니다. 답을 하는데 있어서 너무 많은 시간을 들이지 마세요.</string>
+    <string name="survey3_title">다음 항목들을 신중하게 읽으면서 그것이 당신의 삶과 어떤 관련이 있는지 생각한 다음 당신에게 해당되는 따라 숫자를 체크하십시오.</string>
+    <string name="survey4_title">일이 잘 되지 않거나 문제가 있을때,  당신은 다음의 항목들에 대해 얼마나 자신 또는 확신이 있으십니까?</string>
+
+
+    <string name="survey1_scale0">전혀 없었다</string>
+    <string name="survey1_scale1">거의 없었다</string>
+    <string name="survey1_scale2">가끔 있었다</string>
+    <string name="survey1_scale3">자주  있었다</string>
+    <string name="survey1_scale4">매우 자주 있었다</string>
+
+    <string name="survey2_scale0">매우 아니다 </string>
+    <string name="survey2_scale1">거의 아니다</string>
+    <string name="survey2_scale2">약간 아니다</string>
+    <string name="survey2_scale3">약간 그렇다</string>
+    <string name="survey2_scale4">거의 그렇다</string>
+    <string name="survey2_scale5">매우 그렇다</string>
+
+    <string name="survey3_scale0">전혀 아니다</string>
+    <string name="survey3_scale1">대체로 아니다</string>
+    <string name="survey3_scale2">보통이다</string>
+    <string name="survey3_scale3">대체로 그렇다</string>
+    <string name="survey3_scale4">매우 그렇다</string>
+
+
+
+
+
+    <string-array name="months_array">
+        <item> 1 월 </item>
+                
+        <item> 2 월 </item>
+                
+        <item> 3 월 </item>
+                
+        <item> 4 월 </item>
+                
+        <item> 5 월 </item>
+                
+        <item> 6 월 </item>
+                
+        <item> 7 월 </item>
+                
+        <item> 8 월 </item>
+                
+        <item> 9 월 </item>
+                
+        <item> 10 월 </item>
+                
+        <item> 11 월 </item>
+                
+        <item> 12 월 </item>
+    </string-array>
+
+    <string-array name="time_scale_values">
+        <item>분</item>
+        <item>시간</item>
+        <item>일</item>
+    </string-array>
+
+    <string-array name="time_direction_values">
+        <item>전</item>
+        <item>후</item>
+    </string-array>
+    <string name="survey3_tab_txt">회복력 지수 테스트</string>
+    <string name="survey1_tab_txt">인지 된 스트레스 척도 (PSS)</string>
+    <string name="survey2_tab_txt">Ryff의 심리적 웰빙 척도 (PWB)</string>
+    <string name="intervention_effectiveness_txt">중재 효과</string>
+    <string name="interv_before_event">이벤트가 시작되기 전에 개입이 있었는지 여부를 확인하거나 이후에 개입했는지 확인하십시오.</string>
+
+</resources>

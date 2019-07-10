@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="InnerActivityTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textColor">#000</item>
+        <item name="android:statusBarColor">#26ae90</item>
+    </style>
+
+    <color name="inner_activity_actionbar">#26ae90</color>
+    <color name="inner_activity_action_color">#fff</color>
+
+    <color name="colorPrimary">#26ae90</color>
+    <color name="colorPrimaryDark">#1b443b</color>
+    <color name="colorAccent">#b71c1c</color>
+
+
+    <color name="white">#FFF</color>
+    <color name="black">#000</color>
+    <color name="grey">#797A7D</color>
+    <color name="bright_grey">#e9e8e6</color>
+    <color name="event_text_color">#1b443b</color>
+    <color name="red">#FF0000</color>
+    <color name="pink">#ff4081</color>
+    <color name="burgundy">#b33</color>
+
+    <color name="yellow">#FFE699</color>
+    <color name="yellow_pressed">#ffd24d</color>
+    <color name="dark_yellow">#FABB37</color>
+    <color name="dark_yellow_pressed">#eaa206</color>
+
+    <color name="green">#0f0</color>
+
+
+    <color name="interv_method_unchecked">#F8CBAC</color>
+    <color name="interv_method_checked">#ED7D31</color>
+
+    <!-- stress levels colors by levels -->
+    <color name="slvl0_color">#38B549</color>
+    <color name="slvl1_color">#C8DB47</color>
+    <color name="slvl2_color">#F1E338</color>
+    <color name="slvl3_color">#F47827</color>
+    <color name="slvl4_color">#EE2229</color>
+
+    <color name="textColor">#444</color>
+    <color name="dark_blue">#44f</color>
+</resources>

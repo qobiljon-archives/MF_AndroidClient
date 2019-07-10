@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="20dp"
+    android:orientation="vertical"
+    tools:context=".InterventionsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/inner_activity_actionbar">
+
+        <TextView
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:onClick="cancelClick"
+            android:padding="10dp"
+            android:text="@string/cancel"
+            android:textAllCaps="true"
+            android:textColor="@color/inner_activity_action_color"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:gravity="center_horizontal"
+            android:text="@string/intervention_method"
+            android:textAllCaps="true"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/btn_create"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:onClick="saveClick"
+            android:padding="10dp"
+            android:text="@string/create"
+            android:textAllCaps="true"
+            android:textColor="@color/inner_activity_action_color"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/event_title_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:maxLines="2"
+        android:padding="15dp"
+        android:text="@string/dummy"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:background="@color/bright_grey" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/button_self_intervention"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_interv_method_unchecked_view"
+            android:onClick="tabClicked"
+            android:padding="10dp"
+            android:text="@string/self"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/button_systems_intervention"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_interv_method_unchecked_view"
+            android:onClick="tabClicked"
+            android:padding="10dp"
+            android:text="@string/system"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/button_peer_interventions"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_interv_method_unchecked_view"
+            android:onClick="tabClicked"
+            android:padding="10dp"
+            android:text="@string/peer"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/intervention_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_solid_wrap"
+        android:gravity="top"
+        android:hint="@string/self_intervention_hint"
+        android:inputType="textMultiLine"
+        android:maxLength="128"
+        android:maxLines="3"
+        android:padding="10dp"
+        android:paddingTop="5dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/intervention_choice"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/request_message_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/interventions_list_system"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_solid_wrap">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:id="@+id/interventions_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/interventions_list_more"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+            </LinearLayout>
+
+
+        </ScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/interv_reminder_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="6dp"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/intervention_scheduling"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_solid_wrap">
+
+            <RadioGroup
+                android:id="@+id/interv_reminder_radgroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:checkedButton="@+id/option_none"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/option_none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="0"
+                    android:text="@string/none"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_day_before"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="-1440"
+                    android:text="@string/_1_day_before"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_hour_before"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="-60"
+                    android:text="@string/_1_hour_before"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_30mins_before"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="-30"
+                    android:text="@string/_30_minutes_before"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@id/option_10mins_before"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="-10"
+                    android:text="@string/_10_minutes_before"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_10mins_after"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="10"
+                    android:text="@string/_10_minutes_after"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_30mins_after"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="30"
+                    android:text="@string/_30_minutes_after"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_hour_after"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="60"
+                    android:text="@string/_1_hour_after"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_day_after"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:tag="1440"
+                    android:text="@string/_1_day_after"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/option_custom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:onClick="closeInput"
+                    android:text="@string/dummy"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <RadioButton
+                    android:id="@+id/txt_custom_interv_notif"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:onClick="clickCustomIntervNotification"
+                    android:text="@string/custom"
+                    android:textSize="14sp" />
+
+            </RadioGroup>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>

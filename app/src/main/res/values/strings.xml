@@ -1,0 +1,252 @@
+<resources>
+    <!-- REST API Server URLs -->
+    <!--<string name="server_ip">165.246.43.162</string>&lt;!&ndash; MY PC IP: 165.246.43.162 &ndash;&gt;-->
+    <string name="server_ip" translatable="false">165.246.43.162:8000</string>
+    <string name="url_register" translatable="false">http://%1$s/register/</string>
+    <string name="url_login" translatable="false">http://%1$s/login/</string>
+    <string name="url_logout" translatable="false">http://%1$s/logout/</string>
+
+    <string name="url_event_create" translatable="false">http://%1$s/event_create/</string>
+    <string name="url_event_edit" translatable="false">http://%1$s/event_edit/</string>
+    <string name="url_event_delete" translatable="false">http://%1$s/event_delete/</string>
+    <string name="url_events_fetch" translatable="false">http://%1$s/events_fetch/</string>
+
+    <string name="url_intervention_create" translatable="false">http://%1$s/intervention_create/</string>
+    <string name="url_system_intervention_fetch" translatable="false">http://%1$s/system_intervention_fetch/</string>
+    <string name="url_peer_intervention_fetch" translatable="false">http://%1$s/peer_intervention_fetch/</string>
+
+    <string name="url_evaluation_submit" translatable="false">http://%1$s/evaluation_submit/</string>
+    <string name="url_evaluation_fetch" translatable="false">http://%1$s/evaluation_fetch/</string>
+
+    <string name="url_survey_submit" translatable="false">http://%1$s/survey_submit/</string>
+    <string name="url_survey_questions_fetch" translatable="false">http://%1$s/survey_questions_fetch/</string>
+
+
+    <string name="app_name">MindForecaster</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month_arrow">Next month arrow</string>
+    <string name="sunday">Sun</string>
+    <string name="monday">Mon</string>
+    <string name="tuesday">Tue</string>
+    <string name="wednesday">Wed</string>
+    <string name="thursday">Thu</string>
+    <string name="friday">Fri</string>
+    <string name="saturday">Sat</string>
+    <string name="dummy">dummy</string>
+    <string name="today">Today</string>
+    <string name="settings">Settings</string>
+    <string name="event_title">Event title</string>
+    <string name="event_start_time">Start time</string>
+    <string name="event_end_time">End time</string>
+    <string name="stress_lvl">Stress level</string>
+    <string name="event_note">Event note (optional)</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="not_at_all">Not at all</string>
+    <string name="extreme">Extreme</string>
+    <string name="normal">Normal</string>
+    <string name="btn_close">Close</string>
+    <string name="more">More</string>
+    <string name="intervention_method">Intervention method</string>
+    <string name="self">self</string>
+    <string name="system">system</string>
+    <string name="peer">peer</string>
+    <string name="all_day">All-day</string>
+    <string name="selected_interv_hint">Create an intervention to mediate your stress</string>
+    <string name="self_intervention_hint">Please describe here an intervention that can mediate your stress</string>
+    <string name="interventions_list_peer">Please choose one of the options shared by others below:</string>
+    <string name="interventions_list_system">Please choose one of the options offered by system below:</string>
+    <string name="expand_button">Expand button</string>
+    <string name="anticipated_stress_level">Anticipated stress level</string>
+    <string name="arrow_down">Arrow down</string>
+    <string name="stress_type">What type of stress is this event for you?</string>
+    <string name="positive">Positive</string>
+    <string name="negative">Negative</string>
+    <string name="unidentified">I don\'t know</string>
+    <string name="stress_cause">What causes you to be stressed?</string>
+    <string name="clock_image">Clock image</string>
+    <string name="interventions">Interventions</string>
+    <string name="repeat_notification">Repeat / Notification</string>
+    <string name="share">Share</string>
+    <string name="evaluation">Evaluation</string>
+    <string name="re_evaluation">Re-evaluation</string>
+    <string name="feedback">Feedback</string>
+    <string name="event_details">Event details</string>
+    <string name="event">Event</string>
+    <string name="intervention">Intervention</string>
+    <string name="bad">Bad</string>
+    <string name="good">Good</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="sign_in">Sign in</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="not_a_member">Not a member yet?</string>
+    <string name="now">now</string>
+    <string name="sign_up_label"><u>Sign up</u></string>
+    <string name="sign_up">Sign up</string>
+    <string name="name">Full name</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="sign_up_now">Sign Up Now</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="signing_up">Signing up…</string>
+    <string name="sunday_long">Sunday</string>
+    <string name="event_title_hint">Title</string>
+    <string name="text_image">Image of a letter</string>
+    <string name="event_completion">Event has been done</string>
+    <string name="ask_stress_level">How stressful was the event in real?</string>
+    <string name="interv_done">Please check if this intervention has been done.</string>
+    <string name="interv_effectiveness">How effective was the intervention in real?</string>
+    <string name="interv_recommendation">Please check if you would like this intervention to be shared among peers.</string>
+    <string name="intervention_scheduling">Intervention scheduling:</string>
+    <string name="before_event">Before event</string>
+    <string name="after_ecvent">After ecvent</string>
+    <string name="only_oncehihine">Only once</string>
+    <string name="everyday">Everyday</string>
+    <string name="every_week">Every week</string>
+    <string name="event_repeat_mode">Event repeat mode:</string>
+    <string name="_1_day_before">1 day before</string>
+    <string name="_1_hour_before">1 hour before</string>
+    <string name="_30_minutes_before">30 minutes before</string>
+    <string name="_10_minutes_before">10 minutes before</string>
+    <string name="_10_minutes_after">10 minutes after</string>
+    <string name="_30_minutes_after">30 minutes after</string>
+    <string name="_1_hour_after">1 hour after</string>
+    <string name="_1_day_after">1 day after</string>
+    <string name="_10_minutes_after1">10 minutes after</string>
+    <string name="_30_minutes_after1">30 minutes after</string>
+    <string name="_1_hour_after1">1 hour after</string>
+    <string name="_1_day_after1">1 day after</string>
+    <string name="intervention_reminder_text">Remind me %1$s event</string>
+    <string name="intervention_reminder_text1">Remind me %1$s event</string>
+    <string name="event_notification">Event notification:</string>
+    <string name="log_out">Log out</string>
+    <string name="notifications_settings">Notifications settings</string>
+    <string name="current_event_title">Event: %1$s</string>
+    <string name="current_interv_title">Intervention: %1$s</string>
+    <string name="event_done_check">Current event has been done.</string>
+    <string name="expected_stress_level">Expected stress level</string>
+    <string name="real_stress_level" translatable="false">Real (resulting) stress level</string>
+    <string name="stress_incr_reason">Please, describe here what you think was the reason that made the real stress be higher than expected one.</string>
+    <string name="stress_decr_reason">Please, describe here what you think was the reason that made the real stress be lower than expected one.</string>
+    <string name="stress_incr_title">Reason of difference between expected and real stress levels</string>
+    <string name="stress_decr_title">"Why the stress level is lower than expected?"</string>
+    <string name="stress_incr_title1">Reason of expected stress levels</string>
+    <string name="sunday_time">Sunday evaluation reminder</string>
+    <string name="every_morning_time">Every-morning reminder</string>
+    <string name="every_evening_time">Every-evening reminder</string>
+    <string name="interv_before_event">Please check if intervention has been done before the event, or uncheck if it has been done after.</string>
+    <string name="create">CREATE</string>
+    <string name="none">none</string>
+    <string name="low">Low</string>
+    <string name="high">High</string>
+    <string name="poor">Poor</string>
+    <string name="fair">Fair</string>
+    <string name="average">Average</string>
+    <string name="excellent">Excellent</string>
+    <string name="journal">Journal</string>
+    <string name="ok">OK</string>
+    <string name="custom">Custom…</string>
+    <string name="custom_reminder">Custom reminder</string>
+    <string name="custom_recurrence">Custom recurrence</string>
+    <string name="repeat">Repeat</string>
+    <string name="notification">Notification</string>
+    <string name="channel_name">Event and Intervention notifications</string>
+    <string name="channel_description">The notifications which user can receive on the specified event time, intervention time, or on a customized notification time in the properties of a particular event.</string>
+    <string name="notif_channel_id">mf-notifs</string>
+    <string name="custom_reminder_hint">Set reminder up to 20 days.</string>
+    <string name="value">Value</string>
+    <string name="daily_notif_question">Do you have a new schedule today?</string>
+    <string name="daily_notif_request">Please, evaluate today\'s events!</string>
+    <string name="sunday_notif_question">Do you have a new schedule for the next week?</string>
+    <string name="days">day(s)</string>
+    <string name="hours">hour(s)</string>
+    <string name="minutes">minute(s)</string>
+    <string name="before">before</string>
+    <string name="after">after</string>
+    <string name="upcoming_event">For upcoming event</string>
+    <string name="passed_event">For passed event</string>
+    <string name="evaluated">Evaluated</string>
+    <string name="not_evaluated">Not evaluated</string>
+    <string name="repeat_until">Repeat until</string>
+    <string name="everyday_repeat">Everyday till %1$s %2$d</string>
+    <string name="everyweek_repeat">Every week till %1$s %2$d</string>
+    <string name="notification_event">"%1$s" is %2$s</string>
+    <string name="notification_event_time">%1$s %2$s</string>
+    <string name="tomorrow">tomorrow</string>
+    <string name="result">Result</string>
+    <string name="set_up_reminders">Set up reminders</string>
+    <string name="survey_main_txt">Please, complete each survey</string>
+    <string name="survey">Survey</string>
+    <string name="survey1_tab_txt">Perceived Stress Scale (PSS)</string>
+    <string name="survey2_tab_txt">Ryffs Psychological Well-Being Scale (PWB)</string>
+    <string name="survey3_tab_txt">Resilience Qutient Test</string>
+
+    <string name="survey1_title">아래 문항은 지난 한 달 동안 당신의 감정과 생각에 대한 질문입니다 . 각 질문에 대해 얼마나 자주 그러했 는지 비슷하다고 생각되는 것을 하나 골라 번호에 체크해 주십시오.</string>
+    <string name="survey2_title">다음의 각 문장을 읽고 얼마나 그 문항이 당신에게 적용되는지에 따라 가리키는 숫자  0, 1, 2, 3, 4, 5, 에 체크하세요. 정답이나 오답은 없습니다. 답을 하는데 있어서 너무 많은 시간을 들이지 마세요.</string>
+    <string name="survey3_title">다음 항목들을 신중하게 읽으면서 그것이 당신의 삶과 어떤 관련이 있는지 생각한 다음 당신에게 해당되는 따라 숫자를 체크하십시오.</string>
+    <string name="survey4_title">일이 잘 되지 않거나 문제가 있을때,  당신은 다음의 항목들에 대해 얼마나 자신 또는 확신이 있으십니까?</string>
+
+
+    <string name="survey1_scale0">Strongly disagree</string>
+    <string name="survey1_scale1">Disagree</string>
+    <string name="survey1_scale2">Neutral</string>
+    <string name="survey1_scale3">Agree</string>
+    <string name="survey1_scale4">Strongly agree</string>
+
+    <string name="survey2_scale0">매우 아니다 </string>
+    <string name="survey2_scale1">거의 아니다</string>
+    <string name="survey2_scale2">약간 아니다</string>
+    <string name="survey2_scale3">약간 그렇다</string>
+    <string name="survey2_scale4">거의 그렇다</string>
+    <string name="survey2_scale5">매우 그렇다</string>
+
+    <string name="survey3_scale0">Strongly disagree</string>
+    <string name="survey3_scale1">Disagree</string>
+    <string name="survey3_scale2">Neutral</string>
+    <string name="survey3_scale3">Agree</string>
+    <string name="survey3_scale4">Strongly agree</string>
+
+
+    <string name="intervention_effectiveness_txt">Intervention effectiveness</string>
+    <string name="_0" translatable="false">0</string>
+    <string name="_1" translatable="false">1</string>
+    <string name="_2" translatable="false">2</string>
+    <string name="_3" translatable="false">3</string>
+    <string name="_4" translatable="false">4</string>
+    <string name="_6" translatable="false">6</string>
+    <string name="_5" translatable="false">5</string>
+
+
+    <string-array name="months_array">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+
+    <string-array name="time_scale_values">
+        <item>mins</item>
+        <item>hrs</item>
+        <item>days</item>
+    </string-array>
+
+    <string-array name="time_direction_values">
+        <item>before</item>
+        <item>after</item>
+    </string-array>
+
+</resources>
