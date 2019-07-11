@@ -53,10 +53,10 @@ public class EventActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK)
             switch (requestCode) {
                 case INTERVENTION_ACTIVITY:
-                    event.setIntervention(InterventionsActivity.resultIntervText);
-                    event.setInterventionReminder(InterventionsActivity.resultNotifMinutes);
+                    event.setIntervention(InterventionsActivity.resultIntervention.getDescription());
+                    event.setInterventionReminder(InterventionsActivity.resultReminderMinutes);
                     selectedInterv.setText(event.getIntervention());
-                    switch (InterventionsActivity.resultNotifMinutes) {
+                    switch (InterventionsActivity.resultReminderMinutes) {
                         case -1440:
                             intervReminderTxt.setText(getString(R.string.intervention_reminder_text, getString(R.string._1_day_before)));
                             break;
@@ -82,11 +82,11 @@ public class EventActivity extends AppCompatActivity {
                             intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, getString(R.string._10_minutes_after1)));
                             break;
                         default:
-                            if (InterventionsActivity.resultNotifMinutes > 0) {
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notifMinsToString(this, InterventionsActivity.resultNotifMinutes)));
+                            if (InterventionsActivity.resultReminderMinutes > 0) {
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notifMinsToString(this, InterventionsActivity.resultReminderMinutes)));
 
                             } else
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notifMinsToString(this, InterventionsActivity.resultNotifMinutes)));
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notifMinsToString(this, InterventionsActivity.resultReminderMinutes)));
                             break;
                     }
                     intervReminderTxt.setVisibility(View.VISIBLE);
@@ -382,8 +382,8 @@ public class EventActivity extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        InterventionsActivity.resultIntervText = event.getIntervention();
-        InterventionsActivity.resultNotifMinutes = event.getInterventionReminder();
+        InterventionsActivity.resultIntervention = new Intervention(event.getIntervention(), null, Intervention.CREATION_METHOD_SYSTEM, true, 0, 0, 0);
+        InterventionsActivity.resultReminderMinutes = event.getInterventionReminder();
 
         eventTitle.setText(event.getTitle());
         stressLvl.setProgress(event.getStressLevel());

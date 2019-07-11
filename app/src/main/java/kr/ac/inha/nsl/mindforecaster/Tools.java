@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -46,7 +47,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Tools {
+class Tools {
     // region Variables
     static final short
             RES_OK = 0,
@@ -232,18 +233,18 @@ public class Tools {
         }
     }
 
-    private static void cacheInterventions(Context context, String[] interventions, String type) {
+    private static void cacheInterventions(Context context, Intervention[] interventions, String type) throws JSONException {
         if (interventions.length == 0)
             return;
 
         JSONArray array = new JSONArray();
-        for (String intervention : interventions)
-            array.put(intervention);
+        for (Intervention intervention : interventions)
+            array.put(intervention.to_json());
 
         Tools.writeToFile(context, String.format(Locale.getDefault(), "%s_interventions.json", type), array.toString());
     }
 
-    static void cacheSystemInterventions(Context context, String[] sysInterventions) {
+    static void cacheSystemInterventions(Context context, Intervention[] sysInterventions) throws JSONException {
         cacheInterventions(context, sysInterventions, "system");
     }
 
@@ -255,28 +256,17 @@ public class Tools {
         Tools.writeToFile(context, "survey.json", obj.toString());
     }
 
-    static void cachePeerInterventions(Context context, String[] peerInterventions) {
+    static void cachePeerInterventions(Context context, Intervention[] peerInterventions) throws JSONException {
         cacheInterventions(context, peerInterventions, "peer");
     }
 
-    private static String[] readOfflineInterventions(Context context, String type) {
-        JSONArray array;
-        try {
-            array = new JSONArray(readFromFile(context, String.format(Locale.getDefault(), "%s_interventions.json", type)));
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
+    private static Intervention[] readOfflineInterventions(Context context, String type) throws JSONException {
+        JSONArray array = new JSONArray(readFromFile(context, String.format(Locale.getDefault(), "%s_interventions.json", type)));
 
-        try {
-            String[] res = new String[array.length()];
-            for (int n = 0; n < array.length(); n++)
-                res[n] = array.getString(n);
-            return res;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
+        Intervention[] res = new Intervention[array.length()];
+        for (int n = 0; n < array.length(); n++)
+            res[n] = Intervention.from_json(new JSONObject(array.getString(n)));
+        return res;
     }
 
     static JSONArray[] loadOfflineSurvey(Context context) {
@@ -293,11 +283,11 @@ public class Tools {
         }
     }
 
-    static String[] readOfflineSystemInterventions(Context context) {
+    static Intervention[] readOfflineSystemInterventions(Context context) throws JSONException {
         return readOfflineInterventions(context, "system");
     }
 
-    static String[] readOfflinePeerInterventions(Context context) {
+    static Intervention[] readOfflinePeerInterventions(Context context) throws JSONException {
         return readOfflineInterventions(context, "peer");
     }
 
@@ -762,8 +752,88 @@ class Event {
     }
 }
 
-@SuppressWarnings("unused")
+@SuppressWarnings("WeakerAccess")
 class Intervention {
     static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;
+
+    Intervention(String description, @Nullable String creator, int creationMethod, boolean isPublic, int numberOfSelections, int numberOfLikes, int numberOfDislikes) {
+        this.description = description;
+        this.creator = creator;
+        this.creationMethod = (short) creationMethod;
+        this.isPublic = isPublic;
+        this.numberOfSelections = (short) numberOfSelections;
+        this.numberOfLikes = (short) numberOfLikes;
+        this.numberOfDislikes = (short) numberOfDislikes;
+    }
+
+    Intervention(String description, String username, int creationMethod) {
+        this.description = description;
+        this.creator = username;
+        this.creationMethod = (short) creationMethod;
+        isPublic = false;
+        numberOfSelections = 0;
+        numberOfLikes = 0;
+        numberOfDislikes = 0;
+    }
+
+    private String description;
+    private String creator;
+    private short creationMethod;
+    private boolean isPublic;
+    private short numberOfSelections;
+    private short numberOfLikes;
+    private short numberOfDislikes;
+
+    String getDescription() {
+        return description;
+    }
+
+    String getCreator() {
+        return creator;
+    }
+
+    short getCreationMethod() {
+        return creationMethod;
+    }
+
+    boolean isPublic() {
+        return isPublic;
+    }
+
+    short getNumberOfSelections() {
+        return numberOfSelections;
+    }
+
+    short getNumberOfLikes() {
+        return numberOfLikes;
+    }
+
+    short getNumberOfDislikes() {
+        return numberOfDislikes;
+    }
+
+    static Intervention from_json(JSONObject object) throws JSONException {
+        return new Intervention(
+                object.getString("description"),
+                object.getString("creator"),
+                object.getInt("creation_method"),
+                object.getBoolean("is_public"),
+                object.getInt("number_of_selections"),
+                object.getInt("number_of_likes"),
+                object.getInt("number_of_dislikes")
+        );
+    }
+
+    JSONObject to_json() throws JSONException {
+        JSONObject res = new JSONObject();
+        res.put("description", getDescription());
+        res.put("creator", getCreator());
+        res.put("creation_method", getCreationMethod());
+        res.put("is_public", isPublic());
+        res.put("number_of_selections", getNumberOfSelections());
+        res.put("number_of_likes", getNumberOfLikes());
+        res.put("number_of_dislikes", getNumberOfDislikes());
+        return res;
+    }
 }

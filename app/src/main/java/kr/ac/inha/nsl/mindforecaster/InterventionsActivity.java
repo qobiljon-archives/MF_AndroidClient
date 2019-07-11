@@ -1,6 +1,5 @@
 package kr.ac.inha.nsl.mindforecaster;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -8,13 +7,15 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -28,6 +29,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class InterventionsActivity extends AppCompatActivity {
@@ -41,12 +43,15 @@ public class InterventionsActivity extends AppCompatActivity {
 
     //region Variables
     private boolean selfIntervention = true;
-    static String resultIntervText = null;
-    static int resultNotifMinutes = 0;
+    static Intervention resultIntervention = null;
+    static int resultReminderMinutes = 0;
 
     private EditText intervTitleText;
     private View intervChoice;
-    private ViewGroup intervList, intervListMore, intervReminderRoot;
+    private ArrayAdapter<String> intervListAdapter;
+    private ArrayList<String> currentIntervsList;
+    private HashMap<String, Intervention> descr2IntervMap;
+    private ViewGroup intervReminderRoot;
     private RadioGroup intervReminderRadGroup;
     private RadioButton customReminderRadioButton;
     private Button[] tabButtons;
@@ -56,13 +61,10 @@ public class InterventionsActivity extends AppCompatActivity {
 
     //endregion
 
-    @SuppressLint("ClickableViewAccessibility")
     private void init() {
         intervChoice = findViewById(R.id.intervention_choice);
         intervTitleText = findViewById(R.id.intervention_text);
         requestMessageTxt = findViewById(R.id.request_message_txt);
-        intervList = findViewById(R.id.interventions_list);
-        intervListMore = findViewById(R.id.interventions_list_more);
         intervReminderRoot = findViewById(R.id.interv_reminder_root);
         intervReminderRadGroup = findViewById(R.id.interv_reminder_radgroup);
         customReminderRadioButton = findViewById(R.id.option_custom);
@@ -71,6 +73,24 @@ public class InterventionsActivity extends AppCompatActivity {
                 findViewById(R.id.button_systems_intervention),
                 findViewById(R.id.button_peer_interventions)
         };
+
+        ListView interventionsList = findViewById(R.id.interventions_listview);
+        currentIntervsList = new ArrayList<>();
+        descr2IntervMap = new HashMap<>();
+        intervListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, currentIntervsList);
+        interventionsList.setAdapter(intervListAdapter);
+        interventionsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String intervStr = ((AppCompatTextView) view).getText().toString();
+                resultIntervention = descr2IntervMap.get(intervStr);
+                assert resultIntervention != null;
+                intervTitleText.setText(resultIntervention.getDescription());
+                intervChoice.setVisibility(View.GONE);
+                intervTitleText.setVisibility(View.VISIBLE);
+                intervReminderRoot.setVisibility(View.VISIBLE);
+            }
+        });
 
         TextView eventTitle = findViewById(R.id.event_title_text_view);
         eventTitle.setText(getString(R.string.current_event_title, getIntent().getStringExtra("eventTitle")));
@@ -83,7 +103,7 @@ public class InterventionsActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (intervReminderRadGroup.findViewById(checkedId) != findViewById(R.id.txt_custom_interv_notif))
-                    resultNotifMinutes = Integer.parseInt(String.valueOf(intervReminderRadGroup.findViewById(checkedId).getTag()));
+                    resultReminderMinutes = Integer.parseInt(String.valueOf(intervReminderRadGroup.findViewById(checkedId).getTag()));
             }
         });
 
@@ -94,14 +114,6 @@ public class InterventionsActivity extends AppCompatActivity {
 
 
         //region For hiding a soft keyboard
-        intervTitleText.setFocusable(false);
-        intervTitleText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                intervTitleText.setFocusableInTouchMode(true);
-                return false;
-            }
-        });
         imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null)
             imm.hideSoftInputFromWindow(intervTitleText.getWindowToken(), InputMethodManager.RESULT_UNCHANGED_SHOWN);
@@ -170,7 +182,7 @@ public class InterventionsActivity extends AppCompatActivity {
             button.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
 
         // Act upon the click event
-        resultIntervText = null;
+        resultIntervention = null;
         switch (view.getId()) {
             case R.id.button_self_intervention:
                 selfIntervention = true;
@@ -186,9 +198,7 @@ public class InterventionsActivity extends AppCompatActivity {
                 requestMessageTxt.setText(getString(R.string.interventions_list_system));
                 tabButtons[1].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
                 intervChoice.setVisibility(View.VISIBLE);
-                intervList.removeAllViews();
-                intervListMore.removeAllViews();
-                if (Tools.isNetworkAvailable(this))
+                if (Tools.isNetworkAvailable(this)) {
                     Tools.execute(new MyRunnable(
                             this,
                             SignInActivity.loginPrefs.getString(SignInActivity.username, null),
@@ -209,31 +219,20 @@ public class InterventionsActivity extends AppCompatActivity {
                                 JSONObject res = new JSONObject(Tools.post(url, params));
                                 switch (res.getInt("result")) {
                                     case Tools.RES_OK:
-                                        runOnUiThread(new MyRunnable(
-                                                activity,
-                                                res.getJSONArray("names")
-                                        ) {
+                                        runOnUiThread(new MyRunnable(activity, res.getJSONArray("interventions")) {
                                             @Override
                                             public void run() {
-                                                JSONArray arr = (JSONArray) args[0];
-                                                while (intervList.getChildCount() > 1)
-                                                    intervList.removeViewAt(1);
-                                                LayoutInflater inflater = getLayoutInflater();
                                                 try {
-                                                    String[] interv = new String[arr.length()];
-                                                    for (int n = 0; n < 20; n++) {
-                                                        inflater.inflate(R.layout.intervention_element, intervList);
-                                                        final TextView interv_text = intervList.getChildAt(n).findViewById(R.id.intervention_text);
-                                                        interv_text.setText(interv[n] = arr.getString(n));
+                                                    JSONArray arr = (JSONArray) args[0];
+                                                    Intervention[] interventions = new Intervention[arr.length()];
+                                                    for (int n = 0; n < arr.length(); n++) {
+                                                        Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                                        interventions[n] = intervention;
+                                                        currentIntervsList.add(intervention.getDescription());
+                                                        descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
-                                                    inflater.inflate(R.layout.more_button_element, intervList);
-                                                    for (int n = 20, i = 0; n < arr.length(); n++, i++) {
-                                                        inflater.inflate(R.layout.intervention_element, intervListMore);
-                                                        final TextView interv_text = intervListMore.getChildAt(i).findViewById(R.id.intervention_text);
-                                                        interv_text.setText(interv[n] = arr.getString(n));
-                                                    }
-                                                    Tools.cacheSystemInterventions(InterventionsActivity.this, interv);
-                                                    intervListMore.setVisibility(View.GONE);
+                                                    Tools.cacheSystemInterventions(InterventionsActivity.this, interventions);
+                                                    intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
@@ -249,41 +248,44 @@ public class InterventionsActivity extends AppCompatActivity {
                                 }
 
                             } catch (JSONException | IOException e) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        currentIntervsList.clear();
+                                        descr2IntervMap.clear();
+                                        intervListAdapter.notifyDataSetChanged();
+                                    }
+                                });
                                 e.printStackTrace();
                             }
                             enableTouch();
                         }
                     });
-                else {
-                    String[] interventions = Tools.readOfflineSystemInterventions(this);
-                    if (interventions == null)
-                        return;
-
-                    LayoutInflater inflater = getLayoutInflater();
-                    for (int n = 0; n < 20; n++) {
-                        inflater.inflate(R.layout.intervention_element, intervList);
-                        final TextView interv_text = intervList.getChildAt(n).findViewById(R.id.intervention_text);
-                        interv_text.setText(interventions[n]);
-
+                } else {
+                    try {
+                        Intervention[] interventions = Tools.readOfflineSystemInterventions(InterventionsActivity.this);
+                        if (interventions.length == 0)
+                            return;
+                        currentIntervsList.clear();
+                        descr2IntervMap.clear();
+                        for (Intervention intervention : interventions) {
+                            currentIntervsList.add(intervention.getDescription());
+                            descr2IntervMap.put(intervention.getDescription(), intervention);
+                        }
+                        intervListAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                    inflater.inflate(R.layout.more_button_element, intervList);
-                    for (int n = 20, i = 0; n < interventions.length; n++, i++) {
-                        inflater.inflate(R.layout.intervention_element, intervListMore);
-                        final TextView interv_text = intervListMore.getChildAt(i).findViewById(R.id.intervention_text);
-                        interv_text.setText(interventions[n]);
-
-                    }
-                    intervListMore.setVisibility(View.GONE);
                 }
                 break;
             case R.id.button_peer_interventions:
                 selfIntervention = false;
                 requestMessageTxt.setText(getString(R.string.interventions_list_peer));
-                intervListMore.setVisibility(View.GONE);
                 tabButtons[2].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
                 intervChoice.setVisibility(View.VISIBLE);
-                intervList.removeAllViews();
-                if (Tools.isNetworkAvailable(this))
+                currentIntervsList.clear();
+                descr2IntervMap.clear();
+                if (Tools.isNetworkAvailable(this)) {
                     Tools.execute(new MyRunnable(
                             this,
                             SignInActivity.loginPrefs.getString(SignInActivity.username, null),
@@ -306,23 +308,21 @@ public class InterventionsActivity extends AppCompatActivity {
                                     case Tools.RES_OK:
                                         runOnUiThread(new MyRunnable(
                                                 activity,
-                                                res.getJSONArray("names")
+                                                res.getJSONArray("interventions")
                                         ) {
                                             @Override
                                             public void run() {
-                                                JSONArray arr = (JSONArray) args[0];
-                                                while (intervList.getChildCount() > 1)
-                                                    intervList.removeViewAt(1);
-
-                                                LayoutInflater inflater = getLayoutInflater();
                                                 try {
-                                                    String[] interv = new String[arr.length()];
+                                                    JSONArray arr = (JSONArray) args[0];
+                                                    Intervention[] interventions = new Intervention[arr.length()];
                                                     for (int n = 0; n < arr.length(); n++) {
-                                                        inflater.inflate(R.layout.intervention_element, intervList);
-                                                        TextView interv_text = intervList.getChildAt(n).findViewById(R.id.intervention_text);
-                                                        interv_text.setText(interv[n] = arr.getString(n));
+                                                        Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                                        interventions[n] = intervention;
+                                                        currentIntervsList.add(intervention.getDescription());
+                                                        descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
-                                                    Tools.cachePeerInterventions(InterventionsActivity.this, interv);
+                                                    Tools.cachePeerInterventions(InterventionsActivity.this, interventions);
+                                                    intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
@@ -343,16 +343,20 @@ public class InterventionsActivity extends AppCompatActivity {
                             enableTouch();
                         }
                     });
-                else {
-                    String[] interventions = Tools.readOfflinePeerInterventions(this);
-                    if (interventions == null)
-                        return;
-
-                    LayoutInflater inflater = getLayoutInflater();
-                    for (int n = 0; n < interventions.length; n++) {
-                        inflater.inflate(R.layout.intervention_element, intervList);
-                        TextView interv_text = intervList.getChildAt(n).findViewById(R.id.intervention_text);
-                        interv_text.setText(interventions[n]);
+                } else {
+                    try {
+                        Intervention[] interventions = Tools.readOfflinePeerInterventions(InterventionsActivity.this);
+                        if (interventions.length == 0)
+                            return;
+                        currentIntervsList.clear();
+                        descr2IntervMap.clear();
+                        for (Intervention intervention : interventions) {
+                            currentIntervsList.add(intervention.getDescription());
+                            descr2IntervMap.put(intervention.getDescription(), intervention);
+                        }
+                        intervListAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
                 }
                 break;
@@ -362,14 +366,6 @@ public class InterventionsActivity extends AppCompatActivity {
         closeInput(view);
     }
 
-    public void onIntervClick(View view) {
-        resultIntervText = ((TextView) view.findViewById(R.id.intervention_text)).getText().toString();
-        intervTitleText.setText(resultIntervText);
-        intervChoice.setVisibility(View.GONE);
-        intervTitleText.setVisibility(View.VISIBLE);
-        intervReminderRoot.setVisibility(View.VISIBLE);
-    }
-
     public void cancelClick(View view) {
         setResult(Activity.RESULT_CANCELED);
         finish();
@@ -377,12 +373,16 @@ public class InterventionsActivity extends AppCompatActivity {
     }
 
     public void saveClick(View view) {
-        if (selfIntervention || !resultIntervText.equals(intervTitleText.getText().toString())) {
+        if (selfIntervention || !resultIntervention.getDescription().equals(intervTitleText.getText().toString())) {
             if (intervTitleText.length() == 0) {
                 Toast.makeText(this, "Please type intervention's name first!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            resultIntervText = intervTitleText.getText().toString();
+            resultIntervention = new Intervention(
+                    intervTitleText.getText().toString(),
+                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
+                    Intervention.CREATION_METHOD_USER
+            );
             if (Tools.isNetworkAvailable(this))
                 Tools.execute(new MyRunnable(
                         this,
@@ -400,7 +400,7 @@ public class InterventionsActivity extends AppCompatActivity {
                         try {
                             params.add(new BasicNameValuePair("username", username));
                             params.add(new BasicNameValuePair("password", password));
-                            params.add(new BasicNameValuePair("interventionName", resultIntervText));
+                            params.add(new BasicNameValuePair("interventionName", resultIntervention.getDescription()));
 
                             JSONObject res = new JSONObject(Tools.post(url, params));
                             switch (res.getInt("result")) {
@@ -479,16 +479,10 @@ public class InterventionsActivity extends AppCompatActivity {
     }
 
     public void setCustomNotifParams(int minutes) {
-        resultNotifMinutes = minutes;
+        resultReminderMinutes = minutes;
         customReminderRadioButton.setTag(String.valueOf(minutes));
         intervReminderRadGroup.check(R.id.option_custom);
         customReminderRadioButton.setText(Tools.notifMinsToString(this, minutes));
         customReminderRadioButton.setVisibility(View.VISIBLE);
     }
-
-    public void clickmoreInterventions(View view) {
-        view.setVisibility(View.GONE);
-        intervListMore.setVisibility(View.VISIBLE);
-    }
-
 }
