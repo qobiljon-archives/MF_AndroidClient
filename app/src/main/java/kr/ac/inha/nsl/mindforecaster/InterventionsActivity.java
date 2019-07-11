@@ -8,7 +8,6 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,11 +20,15 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InterventionsActivity extends AppCompatActivity {
 
@@ -41,7 +44,6 @@ public class InterventionsActivity extends AppCompatActivity {
     static String resultIntervText = null;
     static int resultNotifMinutes = 0;
 
-    private String createMethod;
     private EditText intervTitleText;
     private View intervChoice;
     private ViewGroup intervList, intervListMore, intervReminderRoot;
@@ -171,7 +173,6 @@ public class InterventionsActivity extends AppCompatActivity {
         resultIntervText = null;
         switch (view.getId()) {
             case R.id.button_self_intervention:
-                createMethod = (String) ((Button)view).getText();
                 selfIntervention = true;
                 tabButtons[0].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
                 intervTitleText.setText("");
@@ -181,7 +182,6 @@ public class InterventionsActivity extends AppCompatActivity {
                 intervReminderRoot.setVisibility(View.VISIBLE);
                 break;
             case R.id.button_systems_intervention:
-                createMethod = (String) ((Button)view).getText();
                 selfIntervention = false;
                 requestMessageTxt.setText(getString(R.string.interventions_list_system));
                 tabButtons[1].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
@@ -201,12 +201,12 @@ public class InterventionsActivity extends AppCompatActivity {
                             String password = (String) args[1];
                             String url = (String) args[2];
 
-                            JSONObject body = new JSONObject();
+                            List<NameValuePair> params = new ArrayList<>();
                             try {
-                                body.put("username", username);
-                                body.put("password", password);
+                                params.add(new BasicNameValuePair("username", username));
+                                params.add(new BasicNameValuePair("password", password));
 
-                                JSONObject res = new JSONObject(Tools.post(url, body));
+                                JSONObject res = new JSONObject(Tools.post(url, params));
                                 switch (res.getInt("result")) {
                                     case Tools.RES_OK:
                                         runOnUiThread(new MyRunnable(
@@ -277,7 +277,6 @@ public class InterventionsActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.button_peer_interventions:
-                createMethod = (String) ((Button)view).getText();
                 selfIntervention = false;
                 requestMessageTxt.setText(getString(R.string.interventions_list_peer));
                 intervListMore.setVisibility(View.GONE);
@@ -297,12 +296,12 @@ public class InterventionsActivity extends AppCompatActivity {
                             String password = (String) args[1];
                             String url = (String) args[2];
 
-                            JSONObject body = new JSONObject();
+                            List<NameValuePair> params = new ArrayList<>();
                             try {
-                                body.put("username", username);
-                                body.put("password", password);
+                                params.add(new BasicNameValuePair("username", username));
+                                params.add(new BasicNameValuePair("password", password));
 
-                                JSONObject res = new JSONObject(Tools.post(url, body));
+                                JSONObject res = new JSONObject(Tools.post(url, params));
                                 switch (res.getInt("result")) {
                                     case Tools.RES_OK:
                                         runOnUiThread(new MyRunnable(
@@ -397,14 +396,13 @@ public class InterventionsActivity extends AppCompatActivity {
                         String username = (String) args[1];
                         String password = (String) args[2];
 
-                        JSONObject body = new JSONObject();
+                        List<NameValuePair> params = new ArrayList<>();
                         try {
-                            body.put("username", username);
-                            body.put("password", password);
-                            body.put("interventionName", resultIntervText);
-                            body.put("intervCreateMethod", createMethod);
+                            params.add(new BasicNameValuePair("username", username));
+                            params.add(new BasicNameValuePair("password", password));
+                            params.add(new BasicNameValuePair("interventionName", resultIntervText));
 
-                            JSONObject res = new JSONObject(Tools.post(url, body));
+                            JSONObject res = new JSONObject(Tools.post(url, params));
                             switch (res.getInt("result")) {
                                 case Tools.RES_OK:
                                     runOnUiThread(new MyRunnable(
@@ -460,13 +458,7 @@ public class InterventionsActivity extends AppCompatActivity {
             else
                 Toast.makeText(this, "No network! Please connect to network first!", Toast.LENGTH_SHORT).show();
         } else {
-            if (resultIntervText == null) {
-                Toast.makeText(this, "Please pick an intervention first!", Toast.LENGTH_SHORT).show();
-                return;
-            } else {
-                Toast.makeText(this, "Intervention was picked successfully!", Toast.LENGTH_SHORT).show();
-            }
-
+            Toast.makeText(this, "Intervention was picked successfully!", Toast.LENGTH_SHORT).show();
             setResult(Activity.RESULT_OK);
             finish();
             overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);

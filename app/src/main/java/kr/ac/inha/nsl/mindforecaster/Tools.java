@@ -10,7 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -20,24 +19,31 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
-
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,13 +61,7 @@ public class Tools {
     private static SparseArray<PendingIntent> intervNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> sundayNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> dailyNotifs = new SparseArray<>();
-
-    private static RequestQueue queue;
     // endregion
-
-    static void init(Context context) {
-        queue = Volley.newRequestQueue(context);
-    }
 
     static void setCellSize(int width, int height) {
         cellWidth = width;
@@ -86,37 +86,39 @@ public class Tools {
         }
     }
 
-    static String post(String api, List<NameValuePair> parameters, @Nullable File file) throws IOException {
+    private static String inputStreamToString(InputStream is) throws IOException {
+        InputStreamReader reader = new InputStreamReader(is);
+        StringBuilder sb = new StringBuilder();
 
-        HttpPost httppost = new HttpPost(String.format(Locale.US, "%s/%s", SERVER_URL, api));
+        char[] buf = new char[128];
+        int read;
+        while ((read = reader.read(buf)) > 0)
+            sb.append(buf, 0, read);
+
+        reader.close();
+        return sb.toString();
+    }
+
+    static String post(String url, List<NameValuePair> params) throws IOException {
+        HttpPost httppost = new HttpPost(url);
+        @SuppressWarnings("deprecation")
         HttpClient httpclient = new DefaultHttpClient();
-
-        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-        entityBuilder.setMode(HttpMultipartMode.STRICT);
-        for (NameValuePair pair : parameters)
-            entityBuilder.addTextBody(pair.getName(), pair.getValue());
-        if (file != null)
-            entityBuilder.addPart("file", new FileBody(file));
-        HttpEntity entity = entityBuilder.build();
-
-        httppost.setEntity(entity);
-        return httpclient.execute(httppost);
+        httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+        HttpResponse response = httpclient.execute(httppost);
+        
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
+            return Tools.inputStreamToString(response.getEntity().getContent());
+        else return null;
     }
 
+    @SuppressWarnings("unused")
     private static String convertFromUTF8(byte[] raw) {
-        try {
-            return new String(raw, "UTF-8");
-        } catch (java.io.UnsupportedEncodingException e) {
-            return null;
-        }
+        return new String(raw, StandardCharsets.UTF_8);
     }
 
+    @SuppressWarnings("unused")
     private static String convertToUTF8(String s) {
-        try {
-            return new String(s.getBytes("UTF-8"), "ISO-8859-1");
-        } catch (java.io.UnsupportedEncodingException e) {
-            return null;
-        }
+        return new String(s.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
     }
 
     static void execute(MyRunnable runnable) {
@@ -279,7 +281,7 @@ public class Tools {
         }
     }
 
-    static JSONArray[] readOfflineSurvey(Context context) {
+    static JSONArray[] loadOfflineSurvey(Context context) {
         try {
             JSONObject obj = new JSONObject(readFromFile(context, "survey.json"));
             return new JSONArray[]{
@@ -695,7 +697,7 @@ class Event {
         }
     }
 
-    public static void updateIntervReminder(Context context) {
+    static void updateIntervReminder(Context context) {
         Calendar today = Calendar.getInstance(Locale.getDefault()), calIntervBeforeEvent, calIntervAfterEvent;
         for (Event event : currentEventBank) {
             Calendar calIntervNotifId = Calendar.getInstance(Locale.getDefault());
@@ -757,7 +759,12 @@ class Event {
         this.evaluated = evaluated;
     }
 
-    public boolean isEvaluated() {
+    boolean isEvaluated() {
         return evaluated;
     }
+}
+
+class Intervention {
+    static final short CREATION_METHOD_SYSTEM = 0;
+    static final short CREATION_METHOD_USER = 1;
 }

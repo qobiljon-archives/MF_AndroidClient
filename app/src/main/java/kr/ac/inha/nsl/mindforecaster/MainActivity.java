@@ -22,6 +22,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,6 +31,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,8 +40,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSupportActionBar((Toolbar) findViewById(R.id.my_toolbar));
-
-        Tools.init(this);
         init();
     }
 
@@ -206,14 +207,14 @@ public class MainActivity extends AppCompatActivity {
                     int month = (int) args[5];
                     int year = (int) args[6];
 
-                    JSONObject body = new JSONObject();
+                    List<NameValuePair> params = new ArrayList<>();
                     try {
-                        body.put("username", username);
-                        body.put("password", password);
-                        body.put("period_from", period_from);
-                        body.put("period_till", period_till);
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
+                        params.add(new BasicNameValuePair("period_from", String.valueOf(period_from)));
+                        params.add(new BasicNameValuePair("period_till", String.valueOf(period_till)));
 
-                        JSONObject res = new JSONObject(Tools.post(url, body));
+                        JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
                                 JSONArray array = res.getJSONArray("array");
@@ -376,7 +377,8 @@ public class MainActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
 
-    static final int SURVEY_ACTIVITY =  0;
+    static final int SURVEY_ACTIVITY = 0;
+
     public void surveyClick(MenuItem item) {
         Intent intent = new Intent(this, SurveyActivity.class);
         startActivityForResult(intent, SURVEY_ACTIVITY);

@@ -10,11 +10,15 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class SurveyActivity extends AppCompatActivity {
@@ -62,12 +66,12 @@ public class SurveyActivity extends AppCompatActivity {
                     String password = (String) args[1];
                     String url = (String) args[2];
 
-                    JSONObject body = new JSONObject();
+                    List<NameValuePair> params = new ArrayList<>();
                     try {
-                        body.put("username", username);
-                        body.put("password", password);
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
 
-                        JSONObject res = new JSONObject(Tools.post(url, body));
+                        JSONObject res = new JSONObject(Tools.post(url, params));
                         JSONObject survJson = res.getJSONObject("surveys");
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
@@ -96,14 +100,14 @@ public class SurveyActivity extends AppCompatActivity {
                                                 inflater.inflate(R.layout.survey2_element, surveyChildHolder2);
                                                 TextView interv_text = surveyChildHolder2.getChildAt(n).findViewById(R.id.txt_survey_element);
                                                 JSONObject object = arrSurvey2.getJSONObject(n);
-                                                String survTxt = String.valueOf(n + 1) + ". " + object.getString("key");
+                                                String survTxt = (n + 1) + ". " + object.getString("key");
                                                 interv_text.setText(survTxt);
                                             }
                                             for (int n = 0; n < arrSurvey3.length(); n++) {
                                                 inflater.inflate(R.layout.survey3_element, surveyChildHolder3);
                                                 TextView interv_text = surveyChildHolder3.getChildAt(n).findViewById(R.id.txt_survey_element);
                                                 JSONObject object = arrSurvey3.getJSONObject(n);
-                                                String survTxt = String.valueOf(n + 1) + ". " + object.getString("key");
+                                                String survTxt = (n + 1) + ". " + object.getString("key");
                                                 interv_text.setText(survTxt);
                                             }
 
@@ -130,33 +134,33 @@ public class SurveyActivity extends AppCompatActivity {
             });
         else {
             try {
-                JSONArray[] recvSurv = Tools.readOfflineSurvey(this);
-                if (recvSurv == null) {
+                JSONArray[] offlineSurvey = Tools.loadOfflineSurvey(this);
+                if (offlineSurvey == null) {
                     Toast.makeText(this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 LayoutInflater inflater = getLayoutInflater();
-                for (int n = 0; n < recvSurv[0].length(); n++) {
+                for (int n = 0; n < offlineSurvey[0].length(); n++) {
                     inflater.inflate(R.layout.survey1_element, surveyChildHolder1);
                     TextView interv_text = surveyChildHolder1.getChildAt(n).findViewById(R.id.txt_survey_element);
-                    JSONObject object = recvSurv[0].getJSONObject(n);
-                    String survTxt = String.valueOf(n + 1) + ". " + object.getString("key");
+                    JSONObject object = offlineSurvey[0].getJSONObject(n);
+                    String survTxt = (n + 1) + ". " + object.getString("key");
                     interv_text.setText(survTxt);
                 }
-                for (int n = 0; n < recvSurv[1].length(); n++) {
+                for (int n = 0; n < offlineSurvey[1].length(); n++) {
                     inflater.inflate(R.layout.survey2_element, surveyChildHolder2);
                     TextView interv_text = surveyChildHolder2.getChildAt(n).findViewById(R.id.txt_survey_element);
-                    JSONObject object = recvSurv[1].getJSONObject(n);
-                    String survTxt = String.valueOf(n + 1) + ". " + object.getString("key");
+                    JSONObject object = offlineSurvey[1].getJSONObject(n);
+                    String survTxt = (n + 1) + ". " + object.getString("key");
                     interv_text.setText(survTxt);
                 }
-                for (int n = 0; n < recvSurv[2].length(); n++) {
+                for (int n = 0; n < offlineSurvey[2].length(); n++) {
                     inflater.inflate(R.layout.survey3_element, surveyChildHolder3);
-                    TextView interv_text = surveyChildHolder3.getChildAt(n).findViewById(R.id.txt_survey_element);
-                    JSONObject object = recvSurv[2].getJSONObject(n);
-                    String survTxt = String.valueOf(n + 1) + ". " + object.getString("key");
-                    interv_text.setText(survTxt);
+                    TextView intervention_description = surveyChildHolder3.getChildAt(n).findViewById(R.id.txt_survey_element);
+                    JSONObject object = offlineSurvey[2].getJSONObject(n);
+                    String survTxt = (n + 1) + ". " + object.getString("key");
+                    intervention_description.setText(survTxt);
                 }
 
             } catch (JSONException e) {
@@ -209,28 +213,33 @@ public class SurveyActivity extends AppCompatActivity {
                     String username = (String) args[1];
                     String password = (String) args[2];
 
-                    JSONObject body = new JSONObject();
+                    List<NameValuePair> params = new ArrayList<>();
                     try {
-                        JSONArray survey1 = new JSONArray();
-                        JSONArray survey2 = new JSONArray();
-                        JSONArray survey3 = new JSONArray();
-
+                        StringBuilder survey1 = new StringBuilder();
                         for (int n = 0; n < surveyChildHolder1.getChildCount(); n++)
-                            survey1.put(((SeekBar) surveyChildHolder1.getChildAt(n).findViewById(R.id.scale)).getProgress());
+                            survey1.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder1.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        if (survey1.length() > 0)
+                            survey1.deleteCharAt(survey1.length() - 1);
 
+                        StringBuilder survey2 = new StringBuilder();
                         for (int n = 0; n < surveyChildHolder2.getChildCount(); n++)
-                            survey2.put(((SeekBar) surveyChildHolder2.getChildAt(n).findViewById(R.id.scale)).getProgress());
+                            survey2.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder2.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        if (survey2.length() > 0)
+                            survey2.deleteCharAt(survey1.length() - 1);
 
+                        StringBuilder survey3 = new StringBuilder();
                         for (int n = 0; n < surveyChildHolder3.getChildCount(); n++)
-                            survey3.put(((SeekBar) surveyChildHolder3.getChildAt(n).findViewById(R.id.scale)).getProgress());
+                            survey3.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder3.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        if (survey3.length() > 0)
+                            survey3.deleteCharAt(survey1.length() - 1);
 
-                        body.put("username", username);
-                        body.put("password", password);
-                        body.put("survey1", survey1);
-                        body.put("survey2", survey2);
-                        body.put("survey3", survey3);
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
+                        params.add(new BasicNameValuePair("Part 1", survey1.toString()));
+                        params.add(new BasicNameValuePair("Part 2", survey2.toString()));
+                        params.add(new BasicNameValuePair("Part 3", survey3.toString()));
 
-                        JSONObject res = new JSONObject(Tools.post(url, body));
+                        JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
                                 runOnUiThread(new MyRunnable(

@@ -13,11 +13,15 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class SignInActivity extends AppCompatActivity {
@@ -99,11 +103,11 @@ public class SignInActivity extends AppCompatActivity {
                     String password = (String) args[2];
 
                     try {
-                        JSONObject body = new JSONObject();
-                        body.put("username", username);
-                        body.put("password", password);
+                        List<NameValuePair> params = new ArrayList<>();
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
 
-                        JSONObject json = new JSONObject(Tools.post(body));
+                        JSONObject json = new JSONObject(Tools.post(url, params));
 
                         switch (json.getInt("result")) {
                             case Tools.RES_OK:

@@ -12,10 +12,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EvaluationActivity extends AppCompatActivity {
 
@@ -70,15 +74,13 @@ public class EvaluationActivity extends AppCompatActivity {
                 realStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), progress), PorterDuff.Mode.SRC_IN);
 
                 // compare and get expectation and reality discrepancy details if needed
-                if (expectedStressLevel.getProgress() < realStressLevel.getProgress()){
+                if (expectedStressLevel.getProgress() < realStressLevel.getProgress()) {
                     stressIncrDetails.setVisibility(View.VISIBLE);
                     stressDecrDetails.setVisibility(View.GONE);
-                }
-                else if(expectedStressLevel.getProgress() > realStressLevel.getProgress()) {
+                } else if (expectedStressLevel.getProgress() > realStressLevel.getProgress()) {
                     stressIncrDetails.setVisibility(View.GONE);
                     stressDecrDetails.setVisibility(View.VISIBLE);
-                }
-                else if(expectedStressLevel.getProgress() == realStressLevel.getProgress()){
+                } else if (expectedStressLevel.getProgress() == realStressLevel.getProgress()) {
                     stressIncrDetails.setVisibility(View.GONE);
                     stressDecrDetails.setVisibility(View.GONE);
                 }
@@ -115,24 +117,23 @@ public class EvaluationActivity extends AppCompatActivity {
                     String username = (String) args[1];
                     String password = (String) args[2];
 
-                    JSONObject body = new JSONObject();
+                    List<NameValuePair> params = new ArrayList<>();
                     try {
-                        body.put("username", username);
-                        body.put("password", password);
-                        body.put("eventId", EventActivity.event.getEventId());
-                        body.put("interventionName", EventActivity.event.getIntervention());
-                        body.put("startTime", EventActivity.event.getStartTime().getTimeInMillis());
-                        body.put("endTime", EventActivity.event.getEndTime().getTimeInMillis());
-                        body.put("realStressLevel", realStressLevel.getProgress());
-                        body.put("eventDone", eventCompletionCheck.isChecked());
-                        body.put("interventionDone", intervCompletionCheck.isChecked());
-                        body.put("sharedIntervention", intervSharingCheck.isChecked());
-                        body.put("intervEffectiveness", intervEffectiveness.getProgress());
-                        body.put("realStressCause", realStressReason.getText().toString());
-                        body.put("journal", journalText.getText().toString());
-                        body.put("isEvaluated", true);
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
+                        params.add(new BasicNameValuePair("interventionName", EventActivity.event.getIntervention()));
+                        params.add(new BasicNameValuePair("startTime", String.valueOf(EventActivity.event.getStartTime().getTimeInMillis())));
+                        params.add(new BasicNameValuePair("endTime", String.valueOf(EventActivity.event.getEndTime().getTimeInMillis())));
+                        params.add(new BasicNameValuePair("realStressLevel", String.valueOf(realStressLevel.getProgress())));
+                        params.add(new BasicNameValuePair("eventDone", String.valueOf(eventCompletionCheck.isChecked())));
+                        params.add(new BasicNameValuePair("interventionDone", String.valueOf(intervCompletionCheck.isChecked())));
+                        params.add(new BasicNameValuePair("sharedIntervention", String.valueOf(intervSharingCheck.isChecked())));
+                        params.add(new BasicNameValuePair("intervEffectiveness", String.valueOf(intervEffectiveness.getProgress())));
+                        params.add(new BasicNameValuePair("realStressCause", realStressReason.getText().toString()));
+                        params.add(new BasicNameValuePair("journal", journalText.getText().toString()));
+                        params.add(new BasicNameValuePair("isEvaluated", String.valueOf(true)));
 
-                        JSONObject res = new JSONObject(Tools.post(url, body));
+                        JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
                                 runOnUiThread(new Runnable() {

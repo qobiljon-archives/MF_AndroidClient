@@ -27,12 +27,16 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class EventActivity extends AppCompatActivity {
@@ -694,13 +698,12 @@ public class EventActivity extends AppCompatActivity {
                                     String password = (String) args[2];
                                     long eventId = (long) args[3];
 
-                                    JSONObject body = new JSONObject();
+                                    List<NameValuePair> params = new ArrayList<>();
                                     try {
-                                        body.put("username", username);
-                                        body.put("password", password);
-                                        body.put("eventId", eventId);
+                                        params.add(new BasicNameValuePair("username", username));
+                                        params.add(new BasicNameValuePair("password", password));
 
-                                        JSONObject res = new JSONObject(Tools.post(url, body));
+                                        JSONObject res = new JSONObject(Tools.post(url, params));
                                         switch (res.getInt("result")) {
                                             case Tools.RES_OK:
                                                 runOnUiThread(new MyRunnable(activity, eventId) {
@@ -765,13 +768,13 @@ public class EventActivity extends AppCompatActivity {
                                     String password = (String) args[2];
                                     long repeatId = (long) args[3];
 
-                                    JSONObject body = new JSONObject();
+                                    List<NameValuePair> params = new ArrayList<>();
                                     try {
-                                        body.put("username", username);
-                                        body.put("password", password);
-                                        body.put("repeatId", repeatId);
+                                        params.add(new BasicNameValuePair("username", username));
+                                        params.add(new BasicNameValuePair("password", password));
+                                        params.add(new BasicNameValuePair("repeatId", String.valueOf(repeatId)));
 
-                                        JSONObject res = new JSONObject(Tools.post(url, body));
+                                        JSONObject res = new JSONObject(Tools.post(url, params));
                                         long[] deletedIds = null;
                                         if (res.has("deletedIds")) {
                                             JSONArray array = res.getJSONArray("deletedIds");
@@ -982,39 +985,39 @@ public class EventActivity extends AppCompatActivity {
                 String username = (String) args[1];
                 String password = (String) args[2];
 
-                JSONObject body = new JSONObject();
+                List<NameValuePair> params = new ArrayList<>();
                 try {
-                    body.put("username", username);
-                    body.put("password", password);
-                    body.put("eventId", event.getEventId());
-                    body.put("title", event.getTitle());
-                    body.put("stressLevel", event.getStressLevel());
-                    body.put("startTime", event.getStartTime().getTimeInMillis());
-                    body.put("endTime", event.getEndTime().getTimeInMillis());
+                    params.add(new BasicNameValuePair("username", username));
+                    params.add(new BasicNameValuePair("password", password));
+                    params.add(new BasicNameValuePair("eventId", String.valueOf(event.getEventId())));
+                    params.add(new BasicNameValuePair("title", event.getTitle()));
+                    params.add(new BasicNameValuePair("stressLevel", String.valueOf(event.getStressLevel())));
+                    params.add(new BasicNameValuePair("startTime", String.valueOf(event.getStartTime().getTimeInMillis())));
+                    params.add(new BasicNameValuePair("endTime", String.valueOf(event.getEndTime().getTimeInMillis())));
                     if (event.getIntervention() == null) {
-                        body.put("intervention", "");
-                        body.put("interventionReminder", 0);
+                        params.add(new BasicNameValuePair("intervention", ""));
+                        params.add(new BasicNameValuePair("interventionReminder", "0"));
                     } else {
-                        body.put("intervention", event.getIntervention());
-                        body.put("interventionReminder", event.getInterventionReminder());
+                        params.add(new BasicNameValuePair("intervention", event.getIntervention()));
+                        params.add(new BasicNameValuePair("interventionReminder", String.valueOf(event.getInterventionReminder())));
                     }
-                    body.put("stressType", event.getStressType());
-                    body.put("stressCause", event.getStressCause());
-                    body.put("repeatMode", event.getRepeatMode());
-                    body.put("repeatId", event.getRepeatId());
-                    body.put("repeatTill", repeatTillTime);
-                    body.put("eventReminder", event.getEventReminder());
-                    body.put("isEvaluated", event.isEvaluated());
+                    params.add(new BasicNameValuePair("stressType", event.getStressType()));
+                    params.add(new BasicNameValuePair("stressCause", event.getStressCause()));
+                    params.add(new BasicNameValuePair("repeatMode", String.valueOf(event.getRepeatMode())));
+                    params.add(new BasicNameValuePair("repeatId", String.valueOf(event.getRepeatId())));
+                    params.add(new BasicNameValuePair("repeatTill", String.valueOf(repeatTillTime)));
+                    params.add(new BasicNameValuePair("eventReminder", String.valueOf(event.getEventReminder())));
+                    params.add(new BasicNameValuePair("isEvaluated", String.valueOf(event.isEvaluated())));
 
-                    body.put("sun", repeatWeeklDayChecks[0].isChecked());
-                    body.put("mon", repeatWeeklDayChecks[1].isChecked());
-                    body.put("tue", repeatWeeklDayChecks[2].isChecked());
-                    body.put("wed", repeatWeeklDayChecks[3].isChecked());
-                    body.put("thu", repeatWeeklDayChecks[4].isChecked());
-                    body.put("fri", repeatWeeklDayChecks[5].isChecked());
-                    body.put("sat", repeatWeeklDayChecks[6].isChecked());
+                    params.add(new BasicNameValuePair("sun", String.valueOf(repeatWeeklDayChecks[0].isChecked())));
+                    params.add(new BasicNameValuePair("mon", String.valueOf(repeatWeeklDayChecks[1].isChecked())));
+                    params.add(new BasicNameValuePair("tue", String.valueOf(repeatWeeklDayChecks[2].isChecked())));
+                    params.add(new BasicNameValuePair("wed", String.valueOf(repeatWeeklDayChecks[3].isChecked())));
+                    params.add(new BasicNameValuePair("thu", String.valueOf(repeatWeeklDayChecks[4].isChecked())));
+                    params.add(new BasicNameValuePair("fri", String.valueOf(repeatWeeklDayChecks[5].isChecked())));
+                    params.add(new BasicNameValuePair("sat", String.valueOf(repeatWeeklDayChecks[6].isChecked())));
 
-                    JSONObject res = new JSONObject(Tools.post(url, body));
+                    JSONObject res = new JSONObject(Tools.post(url, params));
                     switch (res.getInt("result")) {
                         case Tools.RES_OK:
                             runOnUiThread(new Runnable() {
@@ -1270,12 +1273,12 @@ public class EventActivity extends AppCompatActivity {
                     String url = (String) args[0];
                     String username = (String) args[1];
 
-                    JSONObject body = new JSONObject();
+                    List<NameValuePair> params = new ArrayList<>();
                     try {
-                        body.put("username", username);
-                        body.put("eventId", event.getEventId());
+                        params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("eventId", String.valueOf(event.getEventId())));
 
-                        JSONObject res = new JSONObject(Tools.post(url, body));
+                        JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
                                 JSONObject eventEval = res.getJSONObject("evaluation");
