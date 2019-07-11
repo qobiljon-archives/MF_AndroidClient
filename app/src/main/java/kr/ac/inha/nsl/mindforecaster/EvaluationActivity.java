@@ -122,8 +122,8 @@ public class EvaluationActivity extends AppCompatActivity {
                         params.add(new BasicNameValuePair("username", username));
                         params.add(new BasicNameValuePair("password", password));
                         params.add(new BasicNameValuePair("interventionName", EventActivity.event.getIntervention()));
-                        params.add(new BasicNameValuePair("startTime", String.valueOf(EventActivity.event.getStartTime().getTimeInMillis())));
-                        params.add(new BasicNameValuePair("endTime", String.valueOf(EventActivity.event.getEndTime().getTimeInMillis())));
+                        params.add(new BasicNameValuePair("startTime", String.valueOf(EventActivity.event.getStartTime().getTimeInMillis()/1000)));
+                        params.add(new BasicNameValuePair("endTime", String.valueOf(EventActivity.event.getEndTime().getTimeInMillis()/1000)));
                         params.add(new BasicNameValuePair("realStressLevel", String.valueOf(realStressLevel.getProgress())));
                         params.add(new BasicNameValuePair("eventDone", String.valueOf(eventCompletionCheck.isChecked())));
                         params.add(new BasicNameValuePair("interventionDone", String.valueOf(intervCompletionCheck.isChecked())));

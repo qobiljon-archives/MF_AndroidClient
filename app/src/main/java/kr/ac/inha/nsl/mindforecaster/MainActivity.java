@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
     private GridLayout event_grid;
     private ViewGroup[][] cells = new ViewGroup[7][5];
-    private TextView monthName;
-    private TextView year;
+    private TextView monthNameTextView;
+    private TextView yearValueTextView;
     private Calendar currentCal;
 
     // region CellClick Listener
@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
         currentCal = Calendar.getInstance(Locale.getDefault());
         currentCal.set(currentCal.get(Calendar.YEAR), currentCal.get(Calendar.MONTH), currentCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
         event_grid = findViewById(R.id.event_grid);
-        monthName = findViewById(R.id.header_month_name);
-        year = findViewById(R.id.header_year);
+        monthNameTextView = findViewById(R.id.header_month_name);
+        yearValueTextView = findViewById(R.id.header_year);
 
         event_grid.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -105,11 +105,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("CutPasteId")
     public void updateCalendarView() {
-        // Update the value of year and month according to the currently selected month
-        monthName.setText(getResources().getStringArray(R.array.months_array)[currentCal.get(Calendar.MONTH)]);
-        year.setText(String.valueOf(currentCal.get(Calendar.YEAR)));
+        // Update the value of yearValueTextView and month according to the currently selected month
+        monthNameTextView.setText(getResources().getStringArray(R.array.months_array)[currentCal.get(Calendar.MONTH)]);
+        yearValueTextView.setText(String.valueOf(currentCal.get(Calendar.YEAR)));
 
         // First clear our the grid
         for (int row = 0; row < event_grid.getRowCount(); row++)
@@ -145,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         for (row = 0; row < event_grid.getRowCount(); row++) {
             if (row == 0) {
                 for (col = 0; col < firstDayOfMonth - 1; col++) {
+                    @SuppressLint("CutPasteId")
                     TextView date_text = cells[col][row].findViewById(R.id.date_text_view);
                     date_text.setText(String.valueOf(prevCnt));
 
@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 clone.add(Calendar.MONTH, 1);
                 for (; col < event_grid.getColumnCount(); col++, count++) {
+                    @SuppressLint("CutPasteId")
                     TextView date_text = cells[col][row].findViewById(R.id.date_text_view);
                     date_text.setText(String.valueOf(count));
 
@@ -163,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else
                 for (col = 0; count <= numOfDaysCurMonth && col < event_grid.getColumnCount(); col++, count++) {
+                    @SuppressLint("CutPasteId")
                     TextView date_text = cells[col][row].findViewById(R.id.date_text_view);
                     date_text.setText(String.valueOf(count));
 
@@ -173,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         clone.add(Calendar.MONTH, 1);
 
         for (count = 1, row = event_grid.getRowCount() - 1; col < event_grid.getColumnCount(); col++, count++) {
+            @SuppressLint("CutPasteId")
             TextView date_text = cells[col][row].findViewById(R.id.date_text_view);
             date_text.setText(String.valueOf(count));
 
@@ -192,8 +195,8 @@ public class MainActivity extends AppCompatActivity {
                     getString(R.string.url_events_fetch, getString(R.string.server_ip)),
                     SignInActivity.loginPrefs.getString(SignInActivity.username, null),
                     SignInActivity.loginPrefs.getString(SignInActivity.password, null),
-                    periodFrom.getTimeInMillis(),
-                    periodTill.getTimeInMillis(),
+                    periodFrom.getTimeInMillis() / 1000,
+                    periodTill.getTimeInMillis() / 1000,
                     currentCal.get(Calendar.MONTH),
                     currentCal.get(Calendar.YEAR)
             ) {

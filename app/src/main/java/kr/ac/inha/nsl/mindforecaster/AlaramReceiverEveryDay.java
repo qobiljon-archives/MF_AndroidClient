@@ -20,7 +20,7 @@ public class AlaramReceiverEveryDay extends BroadcastReceiver {
         Calendar cal = Calendar.getInstance(Locale.getDefault());
         notificationIntent.putExtra("eventDate", cal.getTimeInMillis());
         notificationIntent.putExtra("event", "hi");
-        notificationIntent.putExtra("isEvaluate", intent.getBooleanExtra("isEvaluate", false));
+        notificationIntent.putExtra("isEvaluated", intent.getBooleanExtra("isEvaluate", false));
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(SignInActivity.class);

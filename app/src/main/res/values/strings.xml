@@ -4,7 +4,6 @@
     <string name="server_ip" translatable="false">165.246.43.162:8000</string>
     <string name="url_register" translatable="false">http://%1$s/register/</string>
     <string name="url_login" translatable="false">http://%1$s/login/</string>
-    <string name="url_logout" translatable="false">http://%1$s/logout/</string>
 
     <string name="url_event_create" translatable="false">http://%1$s/event_create/</string>
     <string name="url_event_edit" translatable="false">http://%1$s/event_edit/</string>

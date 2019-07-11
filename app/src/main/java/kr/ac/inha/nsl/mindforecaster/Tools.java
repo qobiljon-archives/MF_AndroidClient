@@ -23,10 +23,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -105,7 +103,7 @@ public class Tools {
         HttpClient httpclient = new DefaultHttpClient();
         httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
         HttpResponse response = httpclient.execute(httppost);
-        
+
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
             return Tools.inputStreamToString(response.getEntity().getContent());
         else return null;
@@ -308,7 +306,7 @@ public class Tools {
         Intent intent = new Intent(context, AlaramReceiverEveryDay.class);
         intent.putExtra("Content", text);
         intent.putExtra("notification_id", when.getTimeInMillis());
-        intent.putExtra("isEvaluate", isEvaluate);
+        intent.putExtra("isEvaluated", isEvaluate);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int) when.getTimeInMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
         if (alarmManager != null)
             alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, when.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
@@ -591,7 +589,7 @@ class Event {
         return repeatMode;
     }
 
-    void setRepeatId(long repeatId) {
+    private void setRepeatId(long repeatId) {
         this.repeatId = repeatId;
     }
 
@@ -652,8 +650,8 @@ class Event {
     void fromJson(JSONObject eventJson) {
         try {
             Calendar startTime = Calendar.getInstance(Locale.getDefault()), endTime = Calendar.getInstance(Locale.getDefault());
-            startTime.setTimeInMillis(eventJson.getLong("startTime"));
-            endTime.setTimeInMillis(eventJson.getLong("endTime"));
+            startTime.setTimeInMillis(eventJson.getLong("startTime") * 1000);
+            endTime.setTimeInMillis(eventJson.getLong("endTime") * 1000);
 
             id = eventJson.getLong("eventId");
             setTitle(eventJson.getString("title"));
@@ -701,7 +699,7 @@ class Event {
         Calendar today = Calendar.getInstance(Locale.getDefault()), calIntervBeforeEvent, calIntervAfterEvent;
         for (Event event : currentEventBank) {
             Calendar calIntervNotifId = Calendar.getInstance(Locale.getDefault());
-            calIntervNotifId.setTimeInMillis(event.getEventId());
+            calIntervNotifId.setTimeInMillis(event.getStartTime().getTimeInMillis());
             calIntervNotifId.add(Calendar.MILLISECOND, 1);
 
 
@@ -764,6 +762,7 @@ class Event {
     }
 }
 
+@SuppressWarnings("unused")
 class Intervention {
     static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;

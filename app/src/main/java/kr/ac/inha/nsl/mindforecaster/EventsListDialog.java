@@ -81,17 +81,16 @@ public class EventsListDialog extends DialogFragment {
             TextView stressLevel = view.findViewById(R.id.stress_lvl_box);
 
             if (selectedDay.before(Calendar.getInstance(Locale.getDefault()))) {
-                if (event.isEvaluated()){
+                if (event.isEvaluated()) {
                     isEvaluated.setText(getString(R.string.evaluated));
                     stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getRealStressLevel()));
                     stressLevel.setText(String.valueOf(event.getRealStressLevel()));
-                }
-                else {
+                } else {
                     isEvaluated.setText(getString(R.string.not_evaluated));
                     stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
                     stressLevel.setText(String.valueOf(event.getStressLevel()));
                 }
-            } else{
+            } else {
                 isEvaluated.setVisibility(View.GONE);
                 stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
                 stressLevel.setText(String.valueOf(event.getStressLevel()));

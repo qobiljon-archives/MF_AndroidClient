@@ -111,7 +111,6 @@ public class EventActivity extends AppCompatActivity {
     //region Variables
     private final int EVALUATION_ACTIVITY = 0, INTERVENTION_ACTIVITY = 1;
     static Event event;
-    static long repeatTillTime;
 
     private ViewGroup inactiveLayout;
     private ViewGroup stressLevelDetails;
@@ -189,7 +188,7 @@ public class EventActivity extends AppCompatActivity {
         if (getIntent().hasExtra("eventId")) {
             // Editing an existing event
             event = Event.getEventById(getIntent().getLongExtra("eventId", 0));
-            repeatTillTime = 0;
+            event.setRepeatTill(0);
 
             switchAllDay.setEnabled(false);
             eventTitle.setEnabled(false);
@@ -234,7 +233,7 @@ public class EventActivity extends AppCompatActivity {
             eventTitle.clearFocus();
         } else {
             event = new Event(0);
-            repeatTillTime = 0;
+            event.setRepeatTill(0);
             event.setStartTime(Calendar.getInstance(Locale.getDefault()));
             event.setEndTime(Calendar.getInstance(Locale.getDefault()));
             event.setStressType("unknown");
@@ -322,7 +321,7 @@ public class EventActivity extends AppCompatActivity {
 
                 if (checkedId == R.id.no_repeat_radio) {
                     event.setRepeatMode(Event.NO_REPEAT);
-                    repeatTillTime = 0;
+                    event.setRepeatTill(0);
                     repeatValueText.setText(getString(R.string.only_oncehihine));
                     return;
                 }
@@ -333,16 +332,16 @@ public class EventActivity extends AppCompatActivity {
                 DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker picker, int year, int month, int dayOfMonth) {
-                        Calendar cal = Calendar.getInstance(Locale.getDefault()), calTill;
-                        cal.set(year, month, dayOfMonth, 0, 0, 0);
-                        cal.set(Calendar.MILLISECOND, 0);
-                        calTill = (Calendar) cal.clone();
-                        cal.add(Calendar.DAY_OF_MONTH, 1);
-                        if (event.getStartTime().after(cal))
-                            repeatTillTime = 0;
+                        Calendar tmpCal = Calendar.getInstance(Locale.getDefault());
+                        tmpCal.set(year, month, dayOfMonth, 0, 0, 0);
+                        tmpCal.set(Calendar.MILLISECOND, 0);
+                        Calendar calTill = (Calendar) tmpCal.clone();
+
+                        tmpCal.add(Calendar.DAY_OF_MONTH, 1);
+                        if (event.getStartTime().after(tmpCal))
+                            event.setRepeatTill(0);
                         else
-                            repeatTillTime = cal.getTimeInMillis();
-                        event.setRepeatTill(calTill.getTimeInMillis());
+                            event.setRepeatTill(tmpCal.getTimeInMillis() / 1000);
 
                         switch (checkedId) {
                             case R.id.everyday_repeat_radio:
@@ -702,6 +701,7 @@ public class EventActivity extends AppCompatActivity {
                                     try {
                                         params.add(new BasicNameValuePair("username", username));
                                         params.add(new BasicNameValuePair("password", password));
+                                        params.add(new BasicNameValuePair("eventId", String.valueOf(eventId)));
 
                                         JSONObject res = new JSONObject(Tools.post(url, params));
                                         switch (res.getInt("result")) {
@@ -776,8 +776,8 @@ public class EventActivity extends AppCompatActivity {
 
                                         JSONObject res = new JSONObject(Tools.post(url, params));
                                         long[] deletedIds = null;
-                                        if (res.has("deletedIds")) {
-                                            JSONArray array = res.getJSONArray("deletedIds");
+                                        if (res.has("deleted_event_ids")) {
+                                            JSONArray array = res.getJSONArray("deleted_event_ids");
                                             deletedIds = new long[array.length()];
                                             for (int n = 0; n < deletedIds.length; n++)
                                                 deletedIds[n] = array.getLong(n);
@@ -842,7 +842,7 @@ public class EventActivity extends AppCompatActivity {
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (event.getRepeatId() == 0)
+        if (event.getRepeatMode() == Event.NO_REPEAT)
             builder.setMessage("Are you sure you want to delete this event?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
         else {
             builder.setMessage("Delete recurring event")
@@ -971,8 +971,6 @@ public class EventActivity extends AppCompatActivity {
     }
 
     private void createEvent() {
-        event.setRepeatId(event.getRepeatMode() == Event.NO_REPEAT ? 0 : Calendar.getInstance(Locale.getDefault()).getTimeInMillis());
-
         Tools.execute(new MyRunnable(
                 this,
                 EventActivity.event.isNewEvent() ? getString(R.string.url_event_create, getString(R.string.server_ip)) : getString(R.string.url_event_edit, getString(R.string.server_ip)),
@@ -992,8 +990,8 @@ public class EventActivity extends AppCompatActivity {
                     params.add(new BasicNameValuePair("eventId", String.valueOf(event.getEventId())));
                     params.add(new BasicNameValuePair("title", event.getTitle()));
                     params.add(new BasicNameValuePair("stressLevel", String.valueOf(event.getStressLevel())));
-                    params.add(new BasicNameValuePair("startTime", String.valueOf(event.getStartTime().getTimeInMillis())));
-                    params.add(new BasicNameValuePair("endTime", String.valueOf(event.getEndTime().getTimeInMillis())));
+                    params.add(new BasicNameValuePair("startTime", String.valueOf(event.getStartTime().getTimeInMillis() / 1000)));
+                    params.add(new BasicNameValuePair("endTime", String.valueOf(event.getEndTime().getTimeInMillis() / 1000)));
                     if (event.getIntervention() == null) {
                         params.add(new BasicNameValuePair("intervention", ""));
                         params.add(new BasicNameValuePair("interventionReminder", "0"));
@@ -1004,8 +1002,7 @@ public class EventActivity extends AppCompatActivity {
                     params.add(new BasicNameValuePair("stressType", event.getStressType()));
                     params.add(new BasicNameValuePair("stressCause", event.getStressCause()));
                     params.add(new BasicNameValuePair("repeatMode", String.valueOf(event.getRepeatMode())));
-                    params.add(new BasicNameValuePair("repeatId", String.valueOf(event.getRepeatId())));
-                    params.add(new BasicNameValuePair("repeatTill", String.valueOf(repeatTillTime)));
+                    params.add(new BasicNameValuePair("repeatTill", String.valueOf(event.getRepeatTill())));
                     params.add(new BasicNameValuePair("eventReminder", String.valueOf(event.getEventReminder())));
                     params.add(new BasicNameValuePair("isEvaluated", String.valueOf(event.isEvaluated())));
 
