@@ -1021,6 +1021,9 @@ public class EventActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    Intervention intervention = Intervention.getInterventionByDescription(event.getIntervention());
+                                    if (intervention != null)
+                                        intervention.increaseNumberOfSelections();
                                     Toast.makeText(EventActivity.this, EventActivity.event.isNewEvent() ? "Event successfully created!" : "Event has been edited.", Toast.LENGTH_SHORT).show();
 
                                     setResult(Activity.RESULT_OK);

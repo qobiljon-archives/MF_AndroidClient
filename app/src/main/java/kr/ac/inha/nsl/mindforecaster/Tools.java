@@ -45,6 +45,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -235,7 +236,7 @@ class Tools {
     }
 
     private static void cacheInterventions(Context context, Intervention[] interventions, String type) throws JSONException {
-        if (interventions.length == 0)
+        if (interventions == null || interventions.length == 0)
             return;
 
         JSONArray array = new JSONArray();
@@ -369,6 +370,18 @@ class Tools {
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
+    static <T> void shuffle(T[] array) {
+        int n = array.length;
+        Random random = new Random();
+        // Loop over array.
+        for (int i = 0; i < array.length; i++) {
+            int randIndex = i + random.nextInt(n - i);
+            T randomElement = array[randIndex];
+            array[randIndex] = array[i];
+            array[i] = randomElement;
+        }
+    }
+
     static String notifMinsToString(Context context, int minsValue) {
         if (minsValue == 0)
             return context.getString(R.string.none);
@@ -393,6 +406,12 @@ class Tools {
         if (res.startsWith(" "))
             res = res.substring(1);
         return res;
+    }
+
+    static <T> void swap(T[] array, int a, int b) {
+        T tmp = array[a];
+        array[a] = array[b];
+        array[b] = tmp;
     }
 }
 
@@ -765,7 +784,7 @@ class Event {
     }
 }
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 class Intervention {
     // static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;
@@ -792,11 +811,13 @@ class Intervention {
 
     static void setSystemInterventionBank(Intervention[] bank) {
         systemInterventionBank = bank;
+        currentInterventionBank = bank;
         reloadDescr2IntervMap();
     }
 
     static void setPeerInterventionBank(Intervention[] bank) {
         peerInterventionBank = bank;
+        currentInterventionBank = bank;
         reloadDescr2IntervMap();
     }
 
@@ -820,8 +841,9 @@ class Intervention {
         return descr2IntervMap.get(description);
     }
 
-    private static Intervention[] systemInterventionBank;
-    private static Intervention[] peerInterventionBank;
+    static Intervention[] systemInterventionBank;
+    static Intervention[] peerInterventionBank;
+    static Intervention[] currentInterventionBank;
     private static HashMap<String, Intervention> descr2IntervMap = new HashMap<>();
 
     private String description;
@@ -852,12 +874,24 @@ class Intervention {
         return numberOfSelections;
     }
 
+    void increaseNumberOfSelections() {
+        this.numberOfSelections++;
+    }
+
     short getNumberOfLikes() {
         return numberOfLikes;
     }
 
+    void increaseNumberOfLikes() {
+        this.numberOfLikes++;
+    }
+
     short getNumberOfDislikes() {
         return numberOfDislikes;
+    }
+
+    void increaseNumberOfDislikes() {
+        this.numberOfDislikes++;
     }
 
     static Intervention from_json(JSONObject object) throws JSONException {

@@ -54,9 +54,12 @@ public class InterventionsActivity extends AppCompatActivity {
     private ViewGroup intervReminderRoot;
     private RadioGroup intervReminderRadGroup;
     private RadioButton customReminderRadioButton;
-    private Button[] tabButtons;
+    private Button selfInterventionButton;
+    private Button systemInterventionButton;
+    private Button peerInterventionButton;
     private TextView requestMessageTxt;
     private RadioGroup sortRadioGroup;
+    private ViewGroup sortLinearLayout;
 
     private InputMethodManager imm;
 
@@ -70,11 +73,26 @@ public class InterventionsActivity extends AppCompatActivity {
         intervReminderRadGroup = findViewById(R.id.interv_reminder_radgroup);
         customReminderRadioButton = findViewById(R.id.option_custom);
         sortRadioGroup = findViewById(R.id.sort_radio_group);
-        tabButtons = new Button[]{
-                findViewById(R.id.button_self_intervention),
-                findViewById(R.id.button_systems_intervention),
-                findViewById(R.id.button_peer_interventions)
-        };
+        sortLinearLayout = findViewById(R.id.sort_linear_layout);
+
+        selfInterventionButton = findViewById(R.id.button_self_intervention);
+        systemInterventionButton = findViewById(R.id.button_systems_intervention);
+        peerInterventionButton = findViewById(R.id.button_peer_interventions);
+
+        sortRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                sortInterventions(Intervention.currentInterventionBank);
+                currentIntervsList.clear();
+                descr2IntervMap.clear();
+                for (Intervention intervention : Intervention.currentInterventionBank) {
+                    currentIntervsList.add(intervention.getDescription());
+                    descr2IntervMap.put(intervention.getDescription(), intervention);
+                }
+                intervListAdapter.notifyDataSetChanged();
+
+            }
+        });
 
         ListView interventionsList = findViewById(R.id.interventions_listview);
         currentIntervsList = new ArrayList<>();
@@ -89,6 +107,7 @@ public class InterventionsActivity extends AppCompatActivity {
                 assert resultIntervention != null;
                 intervTitleText.setText(resultIntervention.getDescription());
                 intervChoice.setVisibility(View.GONE);
+                sortLinearLayout.setVisibility(View.GONE);
                 intervTitleText.setVisibility(View.VISIBLE);
                 intervReminderRoot.setVisibility(View.VISIBLE);
             }
@@ -99,7 +118,7 @@ public class InterventionsActivity extends AppCompatActivity {
 
         intervTitleText.setVisibility(View.GONE);
         intervChoice.setVisibility(View.GONE);
-        tabButtons[0].callOnClick();
+        peerInterventionButton.callOnClick();
 
         intervReminderRadGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -130,22 +149,32 @@ public class InterventionsActivity extends AppCompatActivity {
         //endregion
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void sortInterventions(Intervention[] interventions) {
-        if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_recent_choice_radio_button) {
-            List<Intervention> eventInterventions = new ArrayList<>();
-            List<Long> intervLastPicketTimes = new ArrayList<>();
-            for (Event event : Event.currentEventBank)
-                if (event.getIntervention() != null) {
-                    int n = intervLastPicketTimes.size() - 1;
-                    while (n >= 0) {
-                        if (event.getInterventionLastPickedTime() <)
-                            n--;
-                    }
-                    eventInterventions.add(n == -1 ? 0 : (n == intervLastPicketTimes.size() - 1 ? n : n + 1), Intervention.getInterventionByDescription(event.getIntervention()));
-                    intervLastPicketTimes.add(n == -1 ? 0 : n + 1, event.getInterventionLastPickedTime());
-                }
-        } else if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_popularity_radio_button) {
+        Tools.shuffle(interventions);
 
+        if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_recent_choice_radio_button) {
+            HashMap<String, Long> intervLastPickedTime = new HashMap<>();
+            for (Event event : Event.currentEventBank)
+                if (event.getIntervention() != null)
+                    intervLastPickedTime.put(event.getIntervention(), event.getInterventionLastPickedTime());
+            for (Intervention intervention : interventions)
+                if (!intervLastPickedTime.containsKey(intervention.getDescription()))
+                    intervLastPickedTime.put(intervention.getDescription(), Long.MIN_VALUE);
+            for (int n = 1; n < interventions.length; n++)
+                if (intervLastPickedTime.get(interventions[n].getDescription()) != Long.MIN_VALUE)
+                    for (int m = n; m > 0; m--)
+                        if (intervLastPickedTime.get(interventions[m].getDescription()) > intervLastPickedTime.get(interventions[m - 1].getDescription()))
+                            Tools.swap(interventions, m, m - 1);
+        } else if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_popularity_radio_button) {
+            HashMap<String, Short> intervSelections = new HashMap<>();
+            for (Intervention intervention : interventions)
+                intervSelections.put(intervention.getDescription(), intervention.getNumberOfSelections());
+            for (int n = 1; n < interventions.length; n++)
+                if (intervSelections.get(interventions[n].getDescription()) != 0)
+                    for (int m = n; m > 0; m--)
+                        if (intervSelections.get(interventions[m].getDescription()) > intervSelections.get(interventions[m - 1].getDescription()))
+                            Tools.swap(interventions, m, m - 1);
         }
     }
 
@@ -194,31 +223,37 @@ public class InterventionsActivity extends AppCompatActivity {
         }
     }
 
-    public void tabClicked(View view) {
+    public void intervTabClick(View view) {
         // Clear out visibility and previously set button color
         intervTitleText.setVisibility(View.GONE);
         intervChoice.setVisibility(View.GONE);
         intervReminderRoot.setVisibility(View.GONE);
-        for (Button button : tabButtons)
-            button.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
 
         // Act upon the click event
         resultIntervention = null;
         switch (view.getId()) {
             case R.id.button_self_intervention:
                 selfIntervention = true;
-                tabButtons[0].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
+                selfInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_checked_view);
+                systemInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
+                peerInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
                 intervTitleText.setText("");
                 intervReminderRadGroup.check(R.id.option_none);
                 intervTitleText.setVisibility(View.VISIBLE);
                 intervTitleText.setFocusableInTouchMode(true);
                 intervReminderRoot.setVisibility(View.VISIBLE);
+                sortLinearLayout.setVisibility(View.GONE);
                 break;
             case R.id.button_systems_intervention:
                 selfIntervention = false;
                 requestMessageTxt.setText(getString(R.string.interventions_list_system));
-                tabButtons[1].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
+                selfInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
+                systemInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_checked_view);
+                peerInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
                 intervChoice.setVisibility(View.VISIBLE);
+                sortLinearLayout.setVisibility(View.VISIBLE);
+                currentIntervsList.clear();
+                descr2IntervMap.clear();
                 if (Tools.isNetworkAvailable(this)) {
                     Tools.execute(new MyRunnable(
                             this,
@@ -304,8 +339,11 @@ public class InterventionsActivity extends AppCompatActivity {
             case R.id.button_peer_interventions:
                 selfIntervention = false;
                 requestMessageTxt.setText(getString(R.string.interventions_list_peer));
-                tabButtons[2].setBackgroundResource(R.drawable.bg_interv_method_checked_view);
+                selfInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
+                systemInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_unchecked_view);
+                peerInterventionButton.setBackgroundResource(R.drawable.bg_interv_method_checked_view);
                 intervChoice.setVisibility(View.VISIBLE);
+                sortLinearLayout.setVisibility(View.VISIBLE);
                 currentIntervsList.clear();
                 descr2IntervMap.clear();
                 if (Tools.isNetworkAvailable(this)) {

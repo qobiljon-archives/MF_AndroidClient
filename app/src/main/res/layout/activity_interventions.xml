@@ -80,16 +80,16 @@
         android:layout_marginEnd="20dp">
 
         <Button
-            android:id="@+id/button_self_intervention"
+            android:id="@+id/button_peer_interventions"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_weight="1"
             android:background="@drawable/bg_interv_method_unchecked_view"
-            android:onClick="tabClicked"
+            android:onClick="intervTabClick"
             android:padding="5dp"
-            android:text="@string/self"
+            android:text="@string/peer"
             android:textAlignment="center"
             android:textColor="@color/black" />
 
@@ -101,22 +101,22 @@
             android:layout_marginEnd="15dp"
             android:layout_weight="1"
             android:background="@drawable/bg_interv_method_unchecked_view"
-            android:onClick="tabClicked"
+            android:onClick="intervTabClick"
             android:padding="5dp"
             android:text="@string/system"
             android:textAlignment="center"
             android:textColor="@color/black" />
 
         <Button
-            android:id="@+id/button_peer_interventions"
+            android:id="@+id/button_self_intervention"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/bg_interv_method_unchecked_view"
-            android:onClick="tabClicked"
+            android:onClick="intervTabClick"
             android:padding="5dp"
-            android:text="@string/peer"
+            android:text="@string/self"
             android:textAlignment="center"
             android:textColor="@color/black" />
     </LinearLayout>
@@ -126,6 +126,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/bg_solid_wrap"
         android:gravity="top"
@@ -138,6 +139,7 @@
         android:visibility="gone" />
 
     <LinearLayout
+        android:id="@+id/sort_linear_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
