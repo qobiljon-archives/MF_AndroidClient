@@ -382,7 +382,7 @@ public class EventActivity extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        InterventionsActivity.resultIntervention = new Intervention(event.getIntervention(), null, Intervention.CREATION_METHOD_SYSTEM, true, 0, 0, 0);
+        InterventionsActivity.resultIntervention = Intervention.getInterventionByDescription(event.getIntervention());
         InterventionsActivity.resultReminderMinutes = event.getInterventionReminder();
 
         eventTitle.setText(event.getTitle());
@@ -925,6 +925,7 @@ public class EventActivity extends AppCompatActivity {
                 event.setStressType("unknown");
                 break;
             default:
+                event.setStressType("unknown");
                 break;
         }
         event.setStressCause(stressCause.getText().toString());

@@ -103,6 +103,80 @@ public class MainActivity extends AppCompatActivity {
                 updateCalendarView();
             }
         });
+
+        if (Tools.isNetworkAvailable(this)) {
+            Tools.execute(new MyRunnable(this) {
+                @Override
+                public void run() {
+                    try {
+                        ArrayList<NameValuePair> params = new ArrayList<>();
+                        JSONObject res = new JSONObject(Tools.post(getString(R.string.url_system_intervention_fetch, getString(R.string.server_ip)), params));
+                        if (res.getInt("result") == Tools.RES_OK)
+                            runOnUiThread(new MyRunnable(activity, res.getJSONArray("interventions")) {
+                                @Override
+                                public void run() {
+                                    try {
+                                        JSONArray arr = (JSONArray) args[0];
+                                        Intervention[] interventions = new Intervention[arr.length()];
+                                        for (int n = 0; n < arr.length(); n++) {
+                                            Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                            interventions[n] = intervention;
+                                        }
+                                        Tools.cacheSystemInterventions(MainActivity.this, interventions);
+                                        Intervention.setSystemInterventionBank(interventions);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            Tools.execute(new MyRunnable(this) {
+                @Override
+                public void run() {
+                    try {
+                        List<NameValuePair> params = new ArrayList<>();
+                        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString(SignInActivity.username, null)));
+                        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString(SignInActivity.password, null)));
+                        JSONObject res = new JSONObject(Tools.post(getString(R.string.url_peer_intervention_fetch, getString(R.string.server_ip)), params));
+                        if (res.getInt("result") == Tools.RES_OK)
+                            runOnUiThread(new MyRunnable(activity, res.getJSONArray("interventions")) {
+                                @Override
+                                public void run() {
+                                    try {
+                                        JSONArray arr = (JSONArray) args[0];
+                                        Intervention[] interventions = new Intervention[arr.length()];
+                                        for (int n = 0; n < arr.length(); n++) {
+                                            Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                            interventions[n] = intervention;
+                                        }
+                                        Tools.cachePeerInterventions(MainActivity.this, interventions);
+                                        Intervention.setPeerInterventionBank(interventions);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            try {
+                Intervention[] systemInterventions = Tools.readOfflineSystemInterventions(MainActivity.this);
+                Intervention.setSystemInterventionBank(systemInterventions);
+
+                Intervention[] peerInterventions = Tools.readOfflinePeerInterventions(MainActivity.this);
+                Intervention.setPeerInterventionBank(peerInterventions);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void updateCalendarView() {

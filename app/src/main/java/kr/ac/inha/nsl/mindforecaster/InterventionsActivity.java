@@ -56,6 +56,7 @@ public class InterventionsActivity extends AppCompatActivity {
     private RadioButton customReminderRadioButton;
     private Button[] tabButtons;
     private TextView requestMessageTxt;
+    private RadioGroup sortRadioGroup;
 
     private InputMethodManager imm;
 
@@ -68,6 +69,7 @@ public class InterventionsActivity extends AppCompatActivity {
         intervReminderRoot = findViewById(R.id.interv_reminder_root);
         intervReminderRadGroup = findViewById(R.id.interv_reminder_radgroup);
         customReminderRadioButton = findViewById(R.id.option_custom);
+        sortRadioGroup = findViewById(R.id.sort_radio_group);
         tabButtons = new Button[]{
                 findViewById(R.id.button_self_intervention),
                 findViewById(R.id.button_systems_intervention),
@@ -126,6 +128,25 @@ public class InterventionsActivity extends AppCompatActivity {
             }
         });
         //endregion
+    }
+
+    private void sortInterventions(Intervention[] interventions) {
+        if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_recent_choice_radio_button) {
+            List<Intervention> eventInterventions = new ArrayList<>();
+            List<Long> intervLastPicketTimes = new ArrayList<>();
+            for (Event event : Event.currentEventBank)
+                if (event.getIntervention() != null) {
+                    int n = intervLastPicketTimes.size() - 1;
+                    while (n >= 0) {
+                        if (event.getInterventionLastPickedTime() <)
+                            n--;
+                    }
+                    eventInterventions.add(n == -1 ? 0 : (n == intervLastPicketTimes.size() - 1 ? n : n + 1), Intervention.getInterventionByDescription(event.getIntervention()));
+                    intervLastPicketTimes.add(n == -1 ? 0 : n + 1, event.getInterventionLastPickedTime());
+                }
+        } else if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_popularity_radio_button) {
+
+        }
     }
 
     public void closeInput(View view) {
@@ -215,7 +236,6 @@ public class InterventionsActivity extends AppCompatActivity {
                             try {
                                 params.add(new BasicNameValuePair("username", username));
                                 params.add(new BasicNameValuePair("password", password));
-
                                 JSONObject res = new JSONObject(Tools.post(url, params));
                                 switch (res.getInt("result")) {
                                     case Tools.RES_OK:
@@ -225,13 +245,15 @@ public class InterventionsActivity extends AppCompatActivity {
                                                 try {
                                                     JSONArray arr = (JSONArray) args[0];
                                                     Intervention[] interventions = new Intervention[arr.length()];
-                                                    for (int n = 0; n < arr.length(); n++) {
-                                                        Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
-                                                        interventions[n] = intervention;
+                                                    for (int n = 0; n < arr.length(); n++)
+                                                        interventions[n] = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                                    sortInterventions(interventions);
+                                                    for (Intervention intervention : interventions) {
                                                         currentIntervsList.add(intervention.getDescription());
                                                         descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
                                                     Tools.cacheSystemInterventions(InterventionsActivity.this, interventions);
+                                                    Intervention.setSystemInterventionBank(interventions);
                                                     intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
@@ -246,7 +268,6 @@ public class InterventionsActivity extends AppCompatActivity {
                                     default:
                                         break;
                                 }
-
                             } catch (JSONException | IOException e) {
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -264,6 +285,8 @@ public class InterventionsActivity extends AppCompatActivity {
                 } else {
                     try {
                         Intervention[] interventions = Tools.readOfflineSystemInterventions(InterventionsActivity.this);
+                        sortInterventions(interventions);
+                        Intervention.setSystemInterventionBank(interventions);
                         if (interventions.length == 0)
                             return;
                         currentIntervsList.clear();
@@ -315,13 +338,15 @@ public class InterventionsActivity extends AppCompatActivity {
                                                 try {
                                                     JSONArray arr = (JSONArray) args[0];
                                                     Intervention[] interventions = new Intervention[arr.length()];
-                                                    for (int n = 0; n < arr.length(); n++) {
-                                                        Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
-                                                        interventions[n] = intervention;
+                                                    for (int n = 0; n < arr.length(); n++)
+                                                        interventions[n] = Intervention.from_json(new JSONObject(arr.getString(n)));
+                                                    sortInterventions(interventions);
+                                                    for (Intervention intervention : interventions) {
                                                         currentIntervsList.add(intervention.getDescription());
                                                         descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
                                                     Tools.cachePeerInterventions(InterventionsActivity.this, interventions);
+                                                    Intervention.setPeerInterventionBank(interventions);
                                                     intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
@@ -346,6 +371,8 @@ public class InterventionsActivity extends AppCompatActivity {
                 } else {
                     try {
                         Intervention[] interventions = Tools.readOfflinePeerInterventions(InterventionsActivity.this);
+                        sortInterventions(interventions);
+                        Intervention.setPeerInterventionBank(interventions);
                         if (interventions.length == 0)
                             return;
                         currentIntervsList.clear();
@@ -405,11 +432,10 @@ public class InterventionsActivity extends AppCompatActivity {
                             JSONObject res = new JSONObject(Tools.post(url, params));
                             switch (res.getInt("result")) {
                                 case Tools.RES_OK:
-                                    runOnUiThread(new MyRunnable(
-                                            activity
-                                    ) {
+                                    runOnUiThread(new MyRunnable(activity) {
                                         @Override
                                         public void run() {
+                                            Intervention.addSelfInterventionToBank(resultIntervention);
                                             Toast.makeText(InterventionsActivity.this, "Intervention successfully created!", Toast.LENGTH_SHORT).show();
                                             setResult(Activity.RESULT_OK);
                                             finish();
@@ -418,9 +444,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                     });
                                     break;
                                 case Tools.RES_FAIL:
-                                    runOnUiThread(new MyRunnable(
-                                            activity
-                                    ) {
+                                    runOnUiThread(new MyRunnable(activity) {
                                         @Override
                                         public void run() {
                                             Toast.makeText(InterventionsActivity.this, "Intervention already exists. Thus, it was picked for you.", Toast.LENGTH_SHORT).show();

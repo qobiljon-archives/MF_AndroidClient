@@ -220,6 +220,9 @@
     <string name="_4" translatable="false">4</string>
     <string name="_6" translatable="false">6</string>
     <string name="_5" translatable="false">5</string>
+    <string name="sort">SORT:</string>
+    <string name="recent_choice">RECENT CHOICE</string>
+    <string name="popularity">POPULARITY</string>
 
 
     <string-array name="months_array">

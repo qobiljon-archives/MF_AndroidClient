@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -460,22 +461,23 @@ class Event {
     }
 
     //region Variables
-    private static Event[] currentEventBank;
+    static Event[] currentEventBank;
     private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
     static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
 
     private boolean newEvent;
 
     private long id;
-    private String title;
+    private String title = "";
     private int stressLevel;
     private int realStressLevel;
     private Calendar startTime;
     private Calendar endTime;
     private String intervention;
     private int interventionReminder;
-    private String stressType;
-    private String stressCause;
+    private long interventionLastPickedTime;
+    private String stressType = "unknown";
+    private String stressCause = "";
     private long repeatId;
     private long repeatTill;
     private int repeatMode;
@@ -611,59 +613,6 @@ class Event {
         return eventReminder;
     }
 
-    JSONObject toJson() {
-        JSONObject eventJson = new JSONObject();
-
-        try {
-            eventJson.put("eventId", getEventId());
-            eventJson.put("title", getTitle());
-            eventJson.put("stressLevel", getStressLevel());
-            eventJson.put("realStressLevel", getRealStressLevel());
-            eventJson.put("startTime", getStartTime().getTimeInMillis());
-            eventJson.put("endTime", getEndTime().getTimeInMillis());
-            eventJson.put("intervention", getIntervention());
-            eventJson.put("interventionReminder", getInterventionReminder());
-            eventJson.put("stressType", getStressType());
-            eventJson.put("stressCause", getStressCause());
-            eventJson.put("repeatMode", getRepeatMode());
-            eventJson.put("repeatId", getRepeatId());
-            eventJson.put("repeatTill", getRepeatTill());
-            eventJson.put("eventReminder", getEventReminder());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return eventJson;
-    }
-
-    void fromJson(JSONObject eventJson) {
-        try {
-            Calendar startTime = Calendar.getInstance(Locale.getDefault()), endTime = Calendar.getInstance(Locale.getDefault());
-            startTime.setTimeInMillis(eventJson.getLong("startTime") * 1000);
-            endTime.setTimeInMillis(eventJson.getLong("endTime") * 1000);
-
-            id = eventJson.getLong("eventId");
-            setTitle(eventJson.getString("title"));
-            setStressLevel(eventJson.getInt("stressLevel"));
-            setRealStressLevel(eventJson.getInt("realStressLevel"));
-            setStartTime(startTime);
-            setEndTime(endTime);
-            setIntervention(eventJson.getString("intervention"));
-            setInterventionReminder((short) eventJson.getInt("interventionReminder"));
-            setStressType(eventJson.getString("stressType"));
-            setStressCause(eventJson.getString("stressCause"));
-            setRepeatMode(eventJson.getInt("repeatMode"));
-            setRepeatId(eventJson.getLong("repeatId"));
-            setRepeatTill(eventJson.getLong("repeatTill"));
-            setEventReminder((short) eventJson.getInt("eventReminder"));
-            setEventReminder((short) eventJson.getInt("eventReminder"));
-            setEvaluated(eventJson.getBoolean("isEvaluated"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     static void updateEventReminders(Context context) {
         Calendar today = Calendar.getInstance(Locale.getDefault()), cal;
         for (Event event : currentEventBank) {
@@ -750,11 +699,75 @@ class Event {
     boolean isEvaluated() {
         return evaluated;
     }
+
+    long getInterventionLastPickedTime() {
+        return interventionLastPickedTime;
+    }
+
+    private void setInterventionLastPickedTime(long interventionLastPickedTime) {
+        this.interventionLastPickedTime = interventionLastPickedTime;
+    }
+
+    JSONObject toJson() {
+        JSONObject eventJson = new JSONObject();
+
+        try {
+            eventJson.put("eventId", getEventId());
+            eventJson.put("title", getTitle());
+            eventJson.put("stressLevel", getStressLevel());
+            eventJson.put("realStressLevel", getRealStressLevel());
+            eventJson.put("startTime", getStartTime().getTimeInMillis());
+            eventJson.put("endTime", getEndTime().getTimeInMillis());
+            eventJson.put("intervention", getIntervention());
+            eventJson.put("interventionReminder", getInterventionReminder());
+            eventJson.put("interventionLastPickedTime", getInterventionLastPickedTime());
+            eventJson.put("stressType", getStressType());
+            eventJson.put("stressCause", getStressCause());
+            eventJson.put("repeatMode", getRepeatMode());
+            eventJson.put("repeatId", getRepeatId());
+            eventJson.put("repeatTill", getRepeatTill());
+            eventJson.put("eventReminder", getEventReminder());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return eventJson;
+    }
+
+    void fromJson(JSONObject eventJson) {
+        try {
+            Calendar startTime = Calendar.getInstance(Locale.getDefault()), endTime = Calendar.getInstance(Locale.getDefault());
+            startTime.setTimeInMillis(eventJson.getLong("startTime") * 1000);
+            endTime.setTimeInMillis(eventJson.getLong("endTime") * 1000);
+
+            id = eventJson.getLong("eventId");
+            setTitle(eventJson.getString("title"));
+            setStressLevel(eventJson.getInt("stressLevel"));
+            setRealStressLevel(eventJson.getInt("realStressLevel"));
+            setStartTime(startTime);
+            setEndTime(endTime);
+            String intervJsonStr = eventJson.getString("intervention");
+            setIntervention(intervJsonStr == null ? null : new JSONObject(intervJsonStr).getString("description"));
+            setInterventionReminder((short) eventJson.getInt("interventionReminder"));
+            setStressType(eventJson.getString("stressType"));
+            setStressCause(eventJson.getString("stressCause"));
+            setRepeatMode(eventJson.getInt("repeatMode"));
+            setRepeatId(eventJson.getLong("repeatId"));
+            setInterventionLastPickedTime(eventJson.getLong("interventionLastPickedTime"));
+            setRepeatTill(eventJson.getLong("repeatTill"));
+            setEventReminder((short) eventJson.getInt("eventReminder"));
+            setEventReminder((short) eventJson.getInt("eventReminder"));
+            setEvaluated(eventJson.getBoolean("isEvaluated"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 @SuppressWarnings("WeakerAccess")
 class Intervention {
-    static final short CREATION_METHOD_SYSTEM = 0;
+    // static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;
 
     Intervention(String description, @Nullable String creator, int creationMethod, boolean isPublic, int numberOfSelections, int numberOfLikes, int numberOfDislikes) {
@@ -776,6 +789,40 @@ class Intervention {
         numberOfLikes = 0;
         numberOfDislikes = 0;
     }
+
+    static void setSystemInterventionBank(Intervention[] bank) {
+        systemInterventionBank = bank;
+        reloadDescr2IntervMap();
+    }
+
+    static void setPeerInterventionBank(Intervention[] bank) {
+        peerInterventionBank = bank;
+        reloadDescr2IntervMap();
+    }
+
+    static void addSelfInterventionToBank(Intervention intervention) {
+        peerInterventionBank = Arrays.copyOf(peerInterventionBank, peerInterventionBank.length + 1);
+        peerInterventionBank[peerInterventionBank.length - 1] = intervention;
+        reloadDescr2IntervMap();
+    }
+
+    private synchronized static void reloadDescr2IntervMap() {
+        descr2IntervMap.clear();
+        if (systemInterventionBank != null)
+            for (Intervention intervention : systemInterventionBank)
+                descr2IntervMap.put(intervention.getDescription(), intervention);
+        if (peerInterventionBank != null)
+            for (Intervention intervention : peerInterventionBank)
+                descr2IntervMap.put(intervention.getDescription(), intervention);
+    }
+
+    static Intervention getInterventionByDescription(String description) {
+        return descr2IntervMap.get(description);
+    }
+
+    private static Intervention[] systemInterventionBank;
+    private static Intervention[] peerInterventionBank;
+    private static HashMap<String, Intervention> descr2IntervMap = new HashMap<>();
 
     private String description;
     private String creator;
