@@ -121,17 +121,15 @@ public class EvaluationActivity extends AppCompatActivity {
                     try {
                         params.add(new BasicNameValuePair("username", username));
                         params.add(new BasicNameValuePair("password", password));
+                        params.add(new BasicNameValuePair("eventId", String.valueOf(EventActivity.event.getEventId())));
                         params.add(new BasicNameValuePair("interventionName", EventActivity.event.getIntervention()));
-                        params.add(new BasicNameValuePair("startTime", String.valueOf(EventActivity.event.getStartTime().getTimeInMillis()/1000)));
-                        params.add(new BasicNameValuePair("endTime", String.valueOf(EventActivity.event.getEndTime().getTimeInMillis()/1000)));
                         params.add(new BasicNameValuePair("realStressLevel", String.valueOf(realStressLevel.getProgress())));
+                        params.add(new BasicNameValuePair("realStressCause", realStressReason.getText().toString()));
+                        params.add(new BasicNameValuePair("journal", journalText.getText().toString()));
                         params.add(new BasicNameValuePair("eventDone", String.valueOf(eventCompletionCheck.isChecked())));
                         params.add(new BasicNameValuePair("interventionDone", String.valueOf(intervCompletionCheck.isChecked())));
                         params.add(new BasicNameValuePair("sharedIntervention", String.valueOf(intervSharingCheck.isChecked())));
                         params.add(new BasicNameValuePair("intervEffectiveness", String.valueOf(intervEffectiveness.getProgress())));
-                        params.add(new BasicNameValuePair("realStressCause", realStressReason.getText().toString()));
-                        params.add(new BasicNameValuePair("journal", journalText.getText().toString()));
-                        params.add(new BasicNameValuePair("isEvaluated", String.valueOf(true)));
 
                         JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {

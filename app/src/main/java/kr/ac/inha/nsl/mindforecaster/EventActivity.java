@@ -1267,16 +1267,19 @@ public class EventActivity extends AppCompatActivity {
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_evaluation_fetch, getString(R.string.server_ip)),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null)
+                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
+                    SignInActivity.loginPrefs.getString(SignInActivity.password, null)
             ) {
                 @Override
                 public void run() {
                     String url = (String) args[0];
                     String username = (String) args[1];
+                    String password = (String) args[2];
 
                     List<NameValuePair> params = new ArrayList<>();
                     try {
                         params.add(new BasicNameValuePair("username", username));
+                        params.add(new BasicNameValuePair("password", password));
                         params.add(new BasicNameValuePair("eventId", String.valueOf(event.getEventId())));
 
                         JSONObject res = new JSONObject(Tools.post(url, params));
@@ -1286,7 +1289,7 @@ public class EventActivity extends AppCompatActivity {
                                 runOnUiThread(new MyRunnable(
                                         activity,
                                         eventEval.get("realStressLevel"),
-                                        eventEval.get("intervEffectiveness"),
+                                        eventEval.get("interventionEffectiveness"),
                                         eventEval.get("realStressCause"),
                                         eventEval.get("journal")
 
@@ -1311,8 +1314,6 @@ public class EventActivity extends AppCompatActivity {
                                         ((ViewGroup) realStressReason.getParent()).setVisibility(realStressReason.length() == 0 ? View.GONE : View.VISIBLE);
                                         journalTxt.setText(journalString);
                                         journalTxt.setVisibility(journalTxt.length() == 0 ? View.GONE : View.VISIBLE);
-
-
                                     }
                                 });
                                 break;

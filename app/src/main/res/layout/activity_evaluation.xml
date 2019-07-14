@@ -63,8 +63,8 @@
                 android:id="@+id/event_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="30dp"
                 android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical">
@@ -89,8 +89,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="15dp"
                     android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
                     android:text="@string/event_completion" />
 
                 <View
@@ -102,8 +102,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp">
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -117,8 +117,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingBottom="15dp"
-                        android:paddingTop="15dp">
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -341,8 +341,8 @@
                 android:id="@+id/intervention_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="30dp"
                 android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -366,8 +366,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="15dp"
                     android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
                     android:text="@string/interv_done" />
 
                 <View
@@ -379,8 +379,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp">
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -394,7 +394,9 @@
                         android:id="@+id/intervention_effectiveness"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
                         android:layout_marginTop="10dp"
+                        android:layout_marginEnd="20dp"
                         android:max="4" />
 
                     <LinearLayout
@@ -405,8 +407,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="center_horizontal"
                             android:text="@string/poor"
-                            android:textAlignment="viewStart"
                             android:textColor="@color/black"
                             android:textSize="15sp" />
 
@@ -414,8 +416,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="center_horizontal"
                             android:text="@string/fair"
-                            android:textAlignment="center"
                             android:textColor="@color/black"
                             android:textSize="15sp" />
 
@@ -423,8 +425,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="center_horizontal"
                             android:text="@string/average"
-                            android:textAlignment="center"
                             android:textColor="@color/black"
                             android:textSize="15sp" />
 
@@ -432,8 +434,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="center_horizontal"
                             android:text="@string/good"
-                            android:textAlignment="center"
                             android:textColor="@color/black"
                             android:textSize="15sp" />
 
@@ -441,8 +443,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:gravity="center_horizontal"
                             android:text="@string/excellent"
-                            android:textAlignment="viewEnd"
                             android:textColor="@color/black"
                             android:textSize="15sp" />
 
@@ -460,8 +462,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingBottom="15dp"
                     android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
                     android:text="@string/interv_recommendation" />
 
             </LinearLayout>
@@ -469,10 +471,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:layout_marginEnd="30dp"
                 android:layout_marginStart="30dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="15dp"
                 android:orientation="vertical">
 
                 <TextView

@@ -67,10 +67,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginEnd="5dp"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
         android:gravity="center">
 
         <ImageView
@@ -123,8 +123,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
-                    android:paddingBottom="5dp"
                     android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
                     android:text="@string/all_day"
                     android:textColor="@color/black"
                     android:textSize="15sp"
@@ -141,8 +141,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
                     android:layout_marginStart="34dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="2"
                     android:labelFor="@+id/txt_event_start_time"
                     android:text="@string/event_start_time"
@@ -184,8 +184,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
                     android:layout_marginStart="34dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="2"
                     android:labelFor="@+id/txt_event_end_time"
                     android:text="@string/event_end_time"
@@ -246,8 +246,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:drawablePadding="5dp"
                         android:drawableStart="@drawable/icon_notification"
+                        android:drawablePadding="5dp"
                         android:onClick="expandNotificationClick"
                         android:text="@string/notification"
                         android:textColor="@color/black"
@@ -290,8 +290,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:drawablePadding="5dp"
                         android:drawableStart="@drawable/icon_repeat"
+                        android:drawablePadding="5dp"
                         android:onClick="expandRepeatClick"
                         android:text="@string/repeat"
                         android:textColor="@color/black"
@@ -336,8 +336,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:drawablePadding="5dp"
                         android:drawableStart="@drawable/icon_stress_level"
+                        android:drawablePadding="5dp"
                         android:onClick="expandStressLevelClick"
                         android:text="@string/anticipated_stress_level"
                         android:textColor="@color/black"
@@ -371,9 +371,9 @@
                     android:id="@+id/tab_interventions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/icon_intervention"
                     android:drawableEnd="@drawable/img_expand"
                     android:drawablePadding="5dp"
-                    android:drawableStart="@drawable/icon_intervention"
                     android:gravity="center_vertical"
                     android:onClick="expandInterventionsClick"
                     android:paddingTop="20dp"
@@ -412,8 +412,8 @@
                     android:id="@+id/tab_evaluation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawablePadding="5dp"
                     android:drawableStart="@drawable/icon_evaluation"
+                    android:drawablePadding="5dp"
                     android:gravity="center_vertical"
                     android:onClick="evaluationClick"
                     android:paddingTop="20dp"
@@ -421,12 +421,7 @@
                     android:text="@string/evaluation"
                     android:textColor="@color/black"
                     android:textSize="18sp" />
-
-
             </LinearLayout>
-
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>

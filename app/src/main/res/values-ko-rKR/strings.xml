@@ -233,5 +233,8 @@
     <string name="survey2_tab_txt">Ryff의 심리적 웰빙 척도 (PWB)</string>
     <string name="intervention_effectiveness_txt">중재 효과</string>
     <string name="interv_before_event">이벤트가 시작되기 전에 개입이 있었는지 여부를 확인하거나 이후에 개입했는지 확인하십시오.</string>
+    <string name="sort">정리:</string>
+    <string name="popularity">인기순으로</string>
+    <string name="recent_choice">최근 선택으로</string>
 
 </resources>
