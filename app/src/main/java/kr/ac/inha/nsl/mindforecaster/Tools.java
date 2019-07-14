@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.ColorInt;
@@ -27,6 +30,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -50,6 +55,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class Tools {
+    static void init(Context context) {
+        usageStatsManager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
+        usageStatsSubmitUrl = context.getString(R.string.url_usage_stats_submit, context.getString(R.string.server_ip));
+        PACKAGE_NAME = context.getPackageName();
+    }
+
     // region Variables
     static final short
             RES_OK = 0,
@@ -62,6 +73,9 @@ class Tools {
     private static SparseArray<PendingIntent> intervNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> sundayNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> dailyNotifs = new SparseArray<>();
+    private static UsageStatsManager usageStatsManager;
+    private static String usageStatsSubmitUrl;
+    private static String PACKAGE_NAME;
     // endregion
 
     static void setCellSize(int width, int height) {
@@ -100,12 +114,63 @@ class Tools {
         return sb.toString();
     }
 
+    private static void checkAndSendUsageAccessStats() throws IOException {
+        long lastSavedTimestamp = SignInActivity.loginPrefs.getLong("lastUsageSubmissionTime", -1);
+
+        Calendar fromCal = Calendar.getInstance(Locale.getDefault());
+        if (lastSavedTimestamp == -1)
+            fromCal.add(Calendar.YEAR, -1);
+        else
+            fromCal.setTime(new Date(lastSavedTimestamp));
+        Calendar tillCal = Calendar.getInstance(Locale.getDefault());
+        tillCal.set(Calendar.MILLISECOND, 0);
+
+        StringBuilder sb = new StringBuilder();
+        for (UsageStats stats : usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, fromCal.getTimeInMillis(), System.currentTimeMillis()))
+            if (stats.getPackageName().equals(PACKAGE_NAME))
+                if (sb.length() == 0)
+                    sb.append(String.format(
+                            Locale.getDefault(),
+                            "%d %d",
+                            stats.getLastTimeUsed() / 1000,
+                            stats.getTotalTimeInForeground() / 1000
+                    ));
+                else
+                    sb.append(String.format(
+                            Locale.getDefault(),
+                            ",%d %d",
+                            stats.getLastTimeUsed() / 1000,
+                            stats.getTotalTimeInForeground() / 1000
+                    ));
+
+        if (sb.length() > 0) {
+            HttpPost httppost = new HttpPost(usageStatsSubmitUrl);
+            @SuppressWarnings("deprecation")
+            HttpClient httpclient = new DefaultHttpClient();
+            ArrayList<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
+            params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+            params.add(new BasicNameValuePair("app_usage", sb.toString()));
+            httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+            HttpResponse response = httpclient.execute(httppost);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                SharedPreferences.Editor editor = SignInActivity.loginPrefs.edit();
+                editor.putLong("lastUsageSubmissionTime", tillCal.getTimeInMillis());
+                editor.apply();
+            }
+        }
+
+    }
+
     static String post(String url, List<NameValuePair> params) throws IOException {
         HttpPost httppost = new HttpPost(url);
         @SuppressWarnings("deprecation")
         HttpClient httpclient = new DefaultHttpClient();
         httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
         HttpResponse response = httpclient.execute(httppost);
+
+        checkAndSendUsageAccessStats();
 
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
             return Tools.inputStreamToString(response.getEntity().getContent());

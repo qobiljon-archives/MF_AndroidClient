@@ -21,6 +21,8 @@
     <string name="url_survey_submit" translatable="false">http://%1$s/survey_submit/</string>
     <string name="url_survey_questions_fetch" translatable="false">http://%1$s/survey_questions_fetch/</string>
 
+    <string name="url_usage_stats_submit" translatable="false">http://%1$s/usage_stats_submit</string>
+
 
     <string name="app_name">MindForecaster</string>
     <string name="month">Month</string>
