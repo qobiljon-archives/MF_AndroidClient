@@ -19,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
@@ -139,6 +140,12 @@ public class EventActivity extends AppCompatActivity {
     private SeekBar stressLvl;
     private ViewGroup weekdaysGroup;
     private CheckBox[] repeatWeeklDayChecks = new CheckBox[7];
+    private ViewGroup result_details_layout;
+    private SeekBar realStressLevelSeek;
+    private SeekBar intervEffectiveness;
+    private TextView realStressReason;
+    private TextView journalTxt;
+    private boolean stressLevelPicked = false;
     //endregion
 
     private void init() {
@@ -148,7 +155,7 @@ public class EventActivity extends AppCompatActivity {
         startTimeText = findViewById(R.id.txt_event_start_time);
         endDateText = findViewById(R.id.txt_event_end_date);
         endTimeText = findViewById(R.id.txt_event_end_time);
-        stressLvl = findViewById(R.id.real_stress_level_seek);
+        stressLvl = findViewById(R.id.real_stress_level_seekbar);
         inactiveLayout = findViewById(R.id.layout_to_be_inactive);
         stressTypeGroup = findViewById(R.id.stress_type_group);
         stressCause = findViewById(R.id.txt_stress_cause);
@@ -161,7 +168,6 @@ public class EventActivity extends AppCompatActivity {
         interventionDetails = findViewById(R.id.intervention_details);
         repeatDetails = findViewById(R.id.repeat_details);
         notificationDetails = findViewById(R.id.notification_details);
-        ViewGroup resultDetails = findViewById(R.id.result_details);
         selectedInterv = findViewById(R.id.selected_intervention);
         repeatModeGroup = findViewById(R.id.repeat_mode_group);
         eventNotificationGroup = findViewById(R.id.event_notification_group);
@@ -175,6 +181,7 @@ public class EventActivity extends AppCompatActivity {
         stressLevelValueText = findViewById(R.id.info_txt_stress_level);
         notificationValueText = findViewById(R.id.info_txt_notification);
         tabEvaluation = findViewById(R.id.tab_evaluation);
+        result_details_layout = findViewById(R.id.result_details_layout);
 
         weekdaysGroup = findViewById(R.id.weekdays_group);
         repeatWeeklDayChecks[0] = findViewById(R.id.sun);
@@ -222,7 +229,7 @@ public class EventActivity extends AppCompatActivity {
                 tabEvaluation.setText(getString(R.string.evaluation));
                 if (event.isEvaluated()) {
                     initResultView();
-                    resultDetails.setVisibility(View.VISIBLE);
+                    result_details_layout.setVisibility(View.VISIBLE);
                 }
             } else {
                 saveButton.setText(getString(R.string.edit));
@@ -386,7 +393,22 @@ public class EventActivity extends AppCompatActivity {
         InterventionsActivity.resultReminderMinutes = event.getInterventionReminder();
 
         eventTitle.setText(event.getTitle());
-        stressLvl.setProgress(event.getStressLevel());
+
+        int stressLevel = event.getStressLevel();
+        if (stressLevel == -1) {
+            stressLevelPicked = false;
+
+            LinearLayout expected_stress_level_labels = result_details_layout.findViewById(R.id.expected_stress_level_labels);
+            expected_stress_level_labels.setVisibility(View.GONE);
+            stressLvl.setVisibility(View.GONE);
+
+            TextView expected_stress_level_not_availble_label = result_details_layout.findViewById(R.id.expected_stress_level_not_availble_label);
+            expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
+        } else {
+            stressLevelPicked = true;
+            stressLvl.setProgress(stressLevel);
+        }
+
         switch (event.getStressType()) {
             case "positive":
                 stressTypeGroup.check(R.id.stressor_positive);
@@ -502,6 +524,9 @@ public class EventActivity extends AppCompatActivity {
         }
 
         switch (event.getStressLevel()) {
+            case -1:
+                stressLevelValueText.setText(getResources().getString(R.string.not_available));
+                break;
             case 0:
                 stressLevelValueText.setText(getResources().getString(R.string.not_at_all));
                 break;
@@ -531,6 +556,7 @@ public class EventActivity extends AppCompatActivity {
             stressLevelValueText.setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_expand), null);
         } else {
             stressLevelDetails.setVisibility(View.VISIBLE);
+            stressLevelPicked = true;
             stressLevelValueText.setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_collapse), null);
             findViewById(R.id.tab_interventions).getParent().requestChildFocus(findViewById(R.id.tab_interventions), findViewById(R.id.tab_interventions));
         }
@@ -899,7 +925,10 @@ public class EventActivity extends AppCompatActivity {
             return;
         }
 
-        event.setStressLevel(stressLvl.getProgress());
+        if (stressLevelPicked)
+            event.setStressLevel(stressLvl.getProgress());
+        else
+            event.setStressLevel(-1);
 
         if (switchAllDay.isChecked()) {
             startTime.set(Calendar.HOUR_OF_DAY, 0);
@@ -1234,29 +1263,38 @@ public class EventActivity extends AppCompatActivity {
     }
 
     public void initResultView() {
-
         activityTitle.setText(getString(R.string.result));
         tabEvaluation.setText(getString(R.string.re_evaluation));
         ViewGroup intervView = findViewById(R.id.result_details_interv);
-        SeekBar expectedStressLevelSeek = findViewById(R.id.expected_stresslvl_seekbar);
+        SeekBar expectedStressLevelSeek = findViewById(R.id.expected_stress_level_seekbar);
         TextView intervName = findViewById(R.id.intervention_name);
         TextView expectedStressReason = findViewById(R.id.expected_strs_reason_text);
-        final SeekBar realStressLevelSeek = findViewById(R.id.real_stresslvl_seekbar);
-        final SeekBar intervEffectiveness = findViewById(R.id.intervention_effectiveness);
-        final TextView realStressReason = findViewById(R.id.real_strs_reason_text);
-        final TextView journalTxt = findViewById(R.id.journal_text);
+        realStressLevelSeek = findViewById(R.id.real_stresslvl_seekbar);
+        intervEffectiveness = findViewById(R.id.intervention_effectiveness);
+        realStressReason = findViewById(R.id.real_strs_reason_text);
+        journalTxt = findViewById(R.id.journal_text);
 
         // set expected stress level from event variable
-        expectedStressLevelSeek.setEnabled(false);
-        expectedStressLevelSeek.setProgress(EventActivity.event.getStressLevel());
-        int expectedStressColor = Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel());
-        expectedStressLevelSeek.getProgressDrawable().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
-        expectedStressLevelSeek.getThumb().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
+        int stressLevel = EventActivity.event.getStressLevel();
+        if (stressLevel == -1) {
+            LinearLayout expected_stress_level_labels = result_details_layout.findViewById(R.id.expected_stress_level_labels);
+            expected_stress_level_labels.setVisibility(View.GONE);
+            expectedStressLevelSeek.setVisibility(View.GONE);
+
+            TextView expected_stress_level_not_availble_label = result_details_layout.findViewById(R.id.expected_stress_level_not_availble_label);
+            expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
+        } else {
+            expectedStressLevelSeek.setEnabled(false);
+            expectedStressLevelSeek.setProgress(EventActivity.event.getStressLevel());
+            int expectedStressColor = Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel());
+            expectedStressLevelSeek.getProgressDrawable().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
+            expectedStressLevelSeek.getThumb().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
+        }
 
         expectedStressReason.setText(event.getStressCause());
         ((ViewGroup) expectedStressReason.getParent()).setVisibility(expectedStressReason.length() == 0 ? View.GONE : View.VISIBLE);
 
-        if (!event.getIntervention().equals("")) {
+        if (event.getIntervention() != null) {
             intervView.setVisibility(View.VISIBLE);
             intervName.setText(getResources().getString(R.string.current_interv_title, event.getIntervention()));
         } else {
@@ -1302,10 +1340,19 @@ public class EventActivity extends AppCompatActivity {
                                         String journalString = (String) args[3];
 
                                         // set real stress level from evaluation
-                                        realStressLevelSeek.setEnabled(false);
-                                        realStressLevelSeek.setProgress(realStressLevel);
-                                        realStressLevelSeek.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), realStressLevel), PorterDuff.Mode.SRC_IN);
-                                        realStressLevelSeek.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), realStressLevel), PorterDuff.Mode.SRC_IN);
+                                        if (realStressLevel == -1) {
+                                            LinearLayout real_stress_level_labels = result_details_layout.findViewById(R.id.real_stress_level_labels);
+                                            real_stress_level_labels.setVisibility(View.GONE);
+                                            realStressLevelSeek.setVisibility(View.GONE);
+
+                                            TextView real_stress_level_not_availble_label = result_details_layout.findViewById(R.id.real_stress_level_not_availble_label);
+                                            real_stress_level_not_availble_label.setVisibility(View.VISIBLE);
+                                        } else {
+                                            realStressLevelSeek.setEnabled(false);
+                                            realStressLevelSeek.setProgress(realStressLevel);
+                                            realStressLevelSeek.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), realStressLevel), PorterDuff.Mode.SRC_IN);
+                                            realStressLevelSeek.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), realStressLevel), PorterDuff.Mode.SRC_IN);
+                                        }
 
                                         intervEffectiveness.setEnabled(false);
                                         intervEffectiveness.setProgress(interventionEffectiveness);
@@ -1313,7 +1360,6 @@ public class EventActivity extends AppCompatActivity {
                                         realStressReason.setText(realStressCause);
                                         ((ViewGroup) realStressReason.getParent()).setVisibility(realStressReason.length() == 0 ? View.GONE : View.VISIBLE);
                                         journalTxt.setText(journalString);
-                                        journalTxt.setVisibility(journalTxt.length() == 0 ? View.GONE : View.VISIBLE);
                                     }
                                 });
                                 break;

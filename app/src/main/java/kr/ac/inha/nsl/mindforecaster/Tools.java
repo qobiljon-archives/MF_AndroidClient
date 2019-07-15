@@ -553,8 +553,8 @@ class Event {
 
     private long id;
     private String title = "";
-    private int stressLevel;
-    private int realStressLevel;
+    private int stressLevel = -1;
+    private int realStressLevel = -1;
     private Calendar startTime;
     private Calendar endTime;
     private String intervention;
@@ -827,15 +827,16 @@ class Event {
 
             id = eventJson.getLong("eventId");
             setTitle(eventJson.getString("title"));
-            setStressLevel(eventJson.getInt("stressLevel"));
-            setRealStressLevel(eventJson.getInt("realStressLevel"));
+            String stressLevelStr = String.valueOf(eventJson.get("stressLevel"));
+            setStressLevel(stressLevelStr.equals("N/A") ? -1 : Integer.parseInt(stressLevelStr));
+            stressLevelStr = String.valueOf(eventJson.get("realStressLevel"));
+            setRealStressLevel(stressLevelStr.equals("N/A") ? -1 : Integer.parseInt(stressLevelStr));
             setStartTime(startTime);
             setEndTime(endTime);
-            String intervJsonStr = eventJson.getString("intervention");
-            setIntervention(intervJsonStr == null ? null : new JSONObject(intervJsonStr).getString("description"));
+            setIntervention(eventJson.getString("intervention").equals("N/A") ? null : new JSONObject(eventJson.getString("intervention")).getString("description"));
             setInterventionReminder((short) eventJson.getInt("interventionReminder"));
-            setStressType(eventJson.getString("stressType"));
-            setStressCause(eventJson.getString("stressCause"));
+            setStressType(eventJson.getString("stressType").equals("N/A") ? "" : eventJson.getString("stressType"));
+            setStressCause(eventJson.getString("stressCause").equals("N/A") ? "" : eventJson.getString("stressCause"));
             setRepeatMode(eventJson.getInt("repeatMode"));
             setRepeatId(eventJson.getLong("repeatId"));
             setInterventionLastPickedTime(eventJson.getLong("interventionLastPickedTime"));

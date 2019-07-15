@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ public class EvaluationActivity extends AppCompatActivity {
     //region Variables
     private CheckBox eventCompletionCheck, intervCompletionCheck, intervSharingCheck;
     private SeekBar realStressLevel;
+    private SeekBar expectedStressLevel;
     private SeekBar intervEffectiveness;
     EditText journalText, realStressReason;
     //endregion
@@ -40,8 +42,8 @@ public class EvaluationActivity extends AppCompatActivity {
     private void init() {
         eventCompletionCheck = findViewById(R.id.event_cempletion_check);
         intervCompletionCheck = findViewById(R.id.intervention_completion);
-        realStressLevel = findViewById(R.id.real_stress_level_seek);
-        final SeekBar expectedStressLevel = findViewById(R.id.expected_stresslvl_seekbar);
+        realStressLevel = findViewById(R.id.real_stress_level_seekbar);
+        expectedStressLevel = findViewById(R.id.expected_stress_level_seekbar);
         intervSharingCheck = findViewById(R.id.intervention_sharing_check);
         intervEffectiveness = findViewById(R.id.intervention_effectiveness);
         journalText = findViewById(R.id.journal_text);
@@ -55,14 +57,24 @@ public class EvaluationActivity extends AppCompatActivity {
         TextView intervTitle = findViewById(R.id.intervention_title_text);
         intervTitle.setText(getString(R.string.current_interv_title, EventActivity.event.getIntervention()));
 
-        if (EventActivity.event.getIntervention().length() == 0) {
-            interventionLayout.setVisibility(View.GONE);
-        }
 
-        expectedStressLevel.setProgress(EventActivity.event.getStressLevel());
-        expectedStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
-        expectedStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+        if (EventActivity.event.getIntervention() == null)
+            interventionLayout.setVisibility(View.GONE);
+
+        int stressLevel = EventActivity.event.getStressLevel();
         expectedStressLevel.setEnabled(false);
+        if (stressLevel == -1) {
+            LinearLayout expected_stress_level_labels = findViewById(R.id.expected_stress_level_labels);
+            expected_stress_level_labels.setVisibility(View.GONE);
+            expectedStressLevel.setVisibility(View.GONE);
+
+            TextView expected_stress_level_not_availble_label = findViewById(R.id.expected_stress_level_not_availble_label);
+            expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
+        } else {
+            expectedStressLevel.setProgress(stressLevel);
+            expectedStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+            expectedStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+        }
 
         realStressLevel.setProgress(EventActivity.event.getStressLevel());
         realStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);

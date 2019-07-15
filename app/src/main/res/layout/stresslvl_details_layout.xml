@@ -29,12 +29,13 @@
             android:orientation="vertical">
 
             <SeekBar
-                android:id="@+id/real_stress_level_seek"
+                android:id="@+id/real_stress_level_seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="4" />
 
             <LinearLayout
+                android:id="@+id/expected_stress_level_labels"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 

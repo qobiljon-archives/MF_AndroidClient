@@ -2,17 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="20dp"
     android:layout_marginStart="20dp"
+    android:layout_marginEnd="20dp"
     android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/result_details_expect_strs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="15dp"
-        android:paddingTop="35dp">
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
@@ -23,15 +22,26 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <SeekBar
-            android:id="@+id/expected_stresslvl_seekbar"
+        <TextView
+            android:id="@+id/expected_stress_level_not_availble_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:gravity="center_horizontal"
+            android:text="@string/not_available"
+            android:textColor="@color/red"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <SeekBar
+            android:id="@+id/expected_stress_level_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:enabled="false"
             android:max="4" />
 
         <LinearLayout
+            android:id="@+id/expected_stress_level_labels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -88,8 +98,8 @@
         android:id="@+id/result_details_real_strs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="15dp">
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
@@ -100,15 +110,26 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/real_stress_level_not_availble_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/not_available"
+            android:textColor="@color/red"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <SeekBar
             android:id="@+id/real_stresslvl_seekbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:enabled="false"
             android:max="4" />
 
         <LinearLayout
+            android:id="@+id/real_stress_level_labels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -186,8 +207,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="15dp"
-            android:paddingTop="15dp">
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -268,8 +289,8 @@
         android:id="@+id/result_details_expected_strs_reason"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
         android:orientation="vertical">
 
         <TextView
@@ -300,8 +321,8 @@
         android:id="@+id/result_details_real_strs_reason"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
         android:orientation="vertical">
 
         <TextView
@@ -332,8 +353,8 @@
         android:id="@+id/result_details_journal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
         android:orientation="vertical">
 
         <TextView

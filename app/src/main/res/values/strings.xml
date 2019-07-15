@@ -24,6 +24,7 @@
 
 
     <string name="app_name">MindForecaster</string>
+    <string name="not_available" translatable="false">N/A</string>
     <string name="month">Month</string>
     <string name="year">Year</string>
     <string name="previous_month">Previous month</string>

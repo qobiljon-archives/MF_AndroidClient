@@ -398,7 +398,7 @@
 
                 <!--Option: Result-->
                 <include
-                    android:id="@+id/result_details"
+                    android:id="@+id/result_details_layout"
                     layout="@layout/result_details_layout"
                     android:visibility="gone" />
 

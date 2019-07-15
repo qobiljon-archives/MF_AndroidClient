@@ -129,8 +129,19 @@
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
+                        <TextView
+                            android:id="@+id/expected_stress_level_not_availble_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="@string/not_available"
+                            android:textColor="@color/red"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
                         <SeekBar
-                            android:id="@+id/expected_stresslvl_seekbar"
+                            android:id="@+id/expected_stress_level_seekbar"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
@@ -138,6 +149,7 @@
                             android:max="4" />
 
                         <LinearLayout
+                            android:id="@+id/expected_stress_level_labels"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
 
@@ -206,7 +218,7 @@
                             android:textStyle="bold" />
 
                         <SeekBar
-                            android:id="@+id/real_stress_level_seek"
+                            android:id="@+id/real_stress_level_seekbar"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
@@ -345,6 +357,15 @@
                 android:layout_marginEnd="30dp"
                 android:orientation="vertical">
 
+                <CheckBox
+                    android:id="@+id/intervention_completion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    android:text="@string/interv_done" />
+
                 <TextView
                     android:id="@+id/intervention_title_text"
                     android:layout_width="match_parent"
@@ -360,15 +381,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="@android:color/darker_gray" />
-
-                <CheckBox
-                    android:id="@+id/intervention_completion"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingTop="15dp"
-                    android:paddingBottom="15dp"
-                    android:text="@string/interv_done" />
 
                 <View
                     android:layout_width="match_parent"
