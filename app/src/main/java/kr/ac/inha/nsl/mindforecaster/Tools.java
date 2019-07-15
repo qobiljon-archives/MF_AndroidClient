@@ -126,7 +126,7 @@ class Tools {
         tillCal.set(Calendar.MILLISECOND, 0);
 
         StringBuilder sb = new StringBuilder();
-        for (UsageStats stats : usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, fromCal.getTimeInMillis(), System.currentTimeMillis()))
+        for (UsageStats stats : usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, fromCal.getTimeInMillis(), System.currentTimeMillis()))
             if (stats.getPackageName().equals(PACKAGE_NAME))
                 if (sb.length() == 0)
                     sb.append(String.format(
@@ -151,7 +151,7 @@ class Tools {
             params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
             params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
             params.add(new BasicNameValuePair("app_usage", sb.toString()));
-            httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             HttpResponse response = httpclient.execute(httppost);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -167,7 +167,7 @@ class Tools {
         HttpPost httppost = new HttpPost(url);
         @SuppressWarnings("deprecation")
         HttpClient httpclient = new DefaultHttpClient();
-        httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
         HttpResponse response = httpclient.execute(httppost);
 
         checkAndSendUsageAccessStats();
