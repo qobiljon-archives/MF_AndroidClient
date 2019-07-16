@@ -397,13 +397,6 @@ public class EventActivity extends AppCompatActivity {
         int stressLevel = event.getStressLevel();
         if (stressLevel == -1) {
             stressLevelPicked = false;
-
-            LinearLayout expected_stress_level_labels = result_details_layout.findViewById(R.id.expected_stress_level_labels);
-            expected_stress_level_labels.setVisibility(View.GONE);
-            stressLvl.setVisibility(View.GONE);
-
-            TextView expected_stress_level_not_availble_label = result_details_layout.findViewById(R.id.expected_stress_level_not_availble_label);
-            expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
         } else {
             stressLevelPicked = true;
             stressLvl.setProgress(stressLevel);
