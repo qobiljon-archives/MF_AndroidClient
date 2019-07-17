@@ -1,7 +1,9 @@
 package kr.ac.inha.nsl.mindforecaster;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AppOpsManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.usage.UsageStats;
@@ -9,11 +11,20 @@ import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.provider.Settings;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -22,6 +33,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -36,8 +48,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,11 +69,24 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.System.currentTimeMillis;
+
 class Tools {
-    static void init(Context context) {
-        usageStatsManager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
-        usageStatsSubmitUrl = context.getString(R.string.url_usage_stats_submit, context.getString(R.string.server_ip));
-        PACKAGE_NAME = context.getPackageName();
+    static void init(Activity activity) throws IOException {
+        // set up usage access data collection
+        usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
+        if (!usageAccessIsGranted(activity)) {
+            Toast.makeText(activity, "Please provide usage access to this app in settings!", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            activity.startActivity(intent);
+        }
+        usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
+        PACKAGE_NAME = activity.getPackageName();
+
+        // set up location data collection
+        locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
+        if (!setUpLocationCallback(activity))
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission_group.LOCATION}, 1);
     }
 
     // region Variables
@@ -76,42 +104,24 @@ class Tools {
     private static UsageStatsManager usageStatsManager;
     private static String usageStatsSubmitUrl;
     private static String PACKAGE_NAME;
+    private static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
+    private static File locationDataFile;
+    private static String locationDataSubmitUrl;
     // endregion
 
-    static void setCellSize(int width, int height) {
-        cellWidth = width;
-        cellHeight = height;
-    }
+    static synchronized String post(String url, List<NameValuePair> params) throws IOException {
+        HttpPost httppost = new HttpPost(url);
+        @SuppressWarnings("deprecation")
+        HttpClient httpclient = new DefaultHttpClient();
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        HttpResponse response = httpclient.execute(httppost);
 
-    static void cellClearOut(ViewGroup[][] grid, int row, int col, Activity activity, ViewGroup parent, LinearLayout.OnClickListener cellClickListener) {
-        if (grid[row][col] == null) {
-            activity.getLayoutInflater().inflate(R.layout.date_cell, parent, true);
-            ViewGroup res = (ViewGroup) parent.getChildAt(parent.getChildCount() - 1);
-            res.getLayoutParams().width = cellWidth;
-            res.getLayoutParams().height = cellHeight;
-            res.setOnClickListener(cellClickListener);
-            grid[row][col] = res;
-        } else {
-            TextView date_text = grid[row][col].findViewById(R.id.date_text_view);
-            date_text.setTextColor(activity.getColor(R.color.textColor));
-            date_text.setBackground(null);
+        checkAndSendUsageAccessStats();
+        checkAndSendLocationData();
 
-            while (grid[row][col].getChildCount() > 1)
-                grid[row][col].removeViewAt(1);
-        }
-    }
-
-    private static String inputStreamToString(InputStream is) throws IOException {
-        InputStreamReader reader = new InputStreamReader(is);
-        StringBuilder sb = new StringBuilder();
-
-        char[] buf = new char[128];
-        int read;
-        while ((read = reader.read(buf)) > 0)
-            sb.append(buf, 0, read);
-
-        reader.close();
-        return sb.toString();
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
+            return Tools.inputStreamToString(response.getEntity().getContent());
+        else return null;
     }
 
     private static void checkAndSendUsageAccessStats() throws IOException {
@@ -126,7 +136,7 @@ class Tools {
         tillCal.set(Calendar.MILLISECOND, 0);
 
         StringBuilder sb = new StringBuilder();
-        for (UsageStats stats : usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, fromCal.getTimeInMillis(), System.currentTimeMillis()))
+        for (UsageStats stats : usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, fromCal.getTimeInMillis(), currentTimeMillis()))
             if (stats.getPackageName().equals(PACKAGE_NAME))
                 if (sb.length() == 0)
                     sb.append(String.format(
@@ -163,18 +173,140 @@ class Tools {
 
     }
 
-    static String post(String url, List<NameValuePair> params) throws IOException {
-        HttpPost httppost = new HttpPost(url);
-        @SuppressWarnings("deprecation")
-        HttpClient httpclient = new DefaultHttpClient();
-        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-        HttpResponse response = httpclient.execute(httppost);
+    private static void checkAndSendLocationData() throws IOException {
+        if (locationDataFile == null)
+            return;
 
-        checkAndSendUsageAccessStats();
+        String locationData = readLocationData();
+        if (locationData.length() == 0)
+            return;
 
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
-            return Tools.inputStreamToString(response.getEntity().getContent());
-        else return null;
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("data", locationData));
+
+        Tools.post(locationDataSubmitUrl, params);
+    }
+
+    static boolean setUpLocationCallback(Activity activity) throws IOException {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission_group.LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationDataFile = new File(activity.getFilesDir(), "mf-locs.txt");
+            boolean fileAvailable = locationDataFile.exists() || locationDataFile.createNewFile();
+
+            if (!fileAvailable) {
+                locationDataFile = null;
+                return false;
+            }
+
+            LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+            LocationListener locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    long timestamp = LAST_REBOOT_TIMESTAMP + location.getElapsedRealtimeNanos() / 1000000;
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    float bearing = location.getBearing();
+                    double altitude = location.getAltitude();
+                    float speed = location.getSpeed();
+                    try {
+                        storeLocationData(timestamp, latitude, longitude, bearing, altitude, speed);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+
+                }
+            };
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.MAX_VALUE, 1, locationListener); // updates if user moves at least 1 meter from current location
+            return true;
+        } else return false;
+    }
+
+    private static boolean usageAccessIsGranted(Context context) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
+            AppOpsManager appOpsManager = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid, applicationInfo.packageName);
+            return (mode == AppOpsManager.MODE_ALLOWED);
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private static void storeLocationData(long timestamp, double latitude, double longitude, float bearing, double altitude, float speed) throws IOException {
+        FileWriter writer = new FileWriter(locationDataFile, true);
+        writer.write(String.format(
+                Locale.getDefault(),
+                "%d %f %f %f %f %f\n",
+                timestamp,
+                latitude,
+                longitude,
+                bearing,
+                altitude,
+                speed
+        ));
+        writer.close();
+    }
+
+    private static String readLocationData() throws IOException {
+        StringBuilder result = new StringBuilder();
+
+        FileReader reader = new FileReader(locationDataFile);
+        char[] buf = new char[128];
+        int read;
+        while ((read = reader.read(buf)) > 0)
+            result.append(buf, 0, read);
+
+        return result.toString();
+    }
+
+    static void setCellSize(int width, int height) {
+        cellWidth = width;
+        cellHeight = height;
+    }
+
+    static void cellClearOut(ViewGroup[][] grid, int row, int col, Activity activity, ViewGroup parent, LinearLayout.OnClickListener cellClickListener) {
+        if (grid[row][col] == null) {
+            activity.getLayoutInflater().inflate(R.layout.date_cell, parent, true);
+            ViewGroup res = (ViewGroup) parent.getChildAt(parent.getChildCount() - 1);
+            res.getLayoutParams().width = cellWidth;
+            res.getLayoutParams().height = cellHeight;
+            res.setOnClickListener(cellClickListener);
+            grid[row][col] = res;
+        } else {
+            TextView date_text = grid[row][col].findViewById(R.id.date_text_view);
+            date_text.setTextColor(activity.getColor(R.color.textColor));
+            date_text.setBackground(null);
+
+            while (grid[row][col].getChildCount() > 1)
+                grid[row][col].removeViewAt(1);
+        }
+    }
+
+    private static String inputStreamToString(InputStream is) throws IOException {
+        InputStreamReader reader = new InputStreamReader(is);
+        StringBuilder sb = new StringBuilder();
+
+        char[] buf = new char[128];
+        int read;
+        while ((read = reader.read(buf)) > 0)
+            sb.append(buf, 0, read);
+
+        reader.close();
+        return sb.toString();
     }
 
     @SuppressWarnings("unused")
@@ -503,7 +635,7 @@ class Event {
     Event(long id) {
         newEvent = id == 0;
         if (newEvent)
-            this.id = System.currentTimeMillis() / 1000;
+            this.id = currentTimeMillis() / 1000;
         else
             this.id = id;
     }
