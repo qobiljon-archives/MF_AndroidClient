@@ -73,6 +73,9 @@ import static java.lang.System.currentTimeMillis;
 
 class Tools {
     static void init(Activity activity) throws IOException {
+        // set up internet connectivity checker
+        connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+
         // set up usage access data collection
         usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
         if (!usageAccessIsGranted(activity)) {
@@ -86,7 +89,7 @@ class Tools {
         // set up location data collection
         locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
         if (!setUpLocationCallback(activity))
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission_group.LOCATION}, 1);
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
     }
 
     // region Variables
@@ -107,6 +110,7 @@ class Tools {
     private static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
     private static File locationDataFile;
     private static String locationDataSubmitUrl;
+    private static ConnectivityManager connectivityManager;
     // endregion
 
     static synchronized String post(String url, List<NameValuePair> params) throws IOException {
@@ -181,14 +185,32 @@ class Tools {
         if (locationData.length() == 0)
             return;
 
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("data", locationData));
+        if (!Character.isDigit(locationData.charAt(locationData.length() - 1)))
+            locationData = locationData.substring(0, locationData.length() - 1);
 
-        Tools.post(locationDataSubmitUrl, params);
+        HttpPost httppost = new HttpPost(locationDataSubmitUrl);
+        @SuppressWarnings("deprecation")
+        HttpClient httpclient = new DefaultHttpClient();
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
+        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+        params.add(new BasicNameValuePair("data", locationData));
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        HttpResponse response = httpclient.execute(httppost);
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            if (locationDataFile.delete())
+                //noinspection ResultOfMethodCallIgnored
+                locationDataFile.createNewFile();
+        }
+    }
+
+    private static void checkAndSendActivityData() throws IOException {
+        // TODO: fill with code from Google Activity Recognition API
     }
 
     static boolean setUpLocationCallback(Activity activity) throws IOException {
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission_group.LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationDataFile = new File(activity.getFilesDir(), "mf-locs.txt");
             boolean fileAvailable = locationDataFile.exists() || locationDataFile.createNewFile();
 
@@ -209,6 +231,10 @@ class Tools {
                     float speed = location.getSpeed();
                     try {
                         storeLocationData(timestamp, latitude, longitude, bearing, altitude, speed);
+                        if (isNetworkAvailable()) {
+                            checkAndSendLocationData();
+                            checkAndSendUsageAccessStats();
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -229,7 +255,7 @@ class Tools {
 
                 }
             };
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.MAX_VALUE, 1, locationListener); // updates if user moves at least 1 meter from current location
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 5, locationListener); // updates if user moves at least 1 meter from current location
             return true;
         } else return false;
     }
@@ -247,6 +273,7 @@ class Tools {
     }
 
     private static void storeLocationData(long timestamp, double latitude, double longitude, float bearing, double altitude, float speed) throws IOException {
+        Log.e("LOCATION UPDATE", String.format(Locale.getDefault(), "(ts, lat, lon, bear, alt, spd)=(%d, %f, %f, %f, %f, %f)", timestamp, latitude, longitude, bearing, altitude, speed));
         FileWriter writer = new FileWriter(locationDataFile, true);
         writer.write(String.format(
                 Locale.getDefault(),
@@ -350,12 +377,10 @@ class Tools {
             return Color.argb(0xff, 0xff, (int) (c * (100 - level)), 0);*/
     }
 
-    static boolean isNetworkAvailable(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo;
+    static boolean isNetworkAvailable() {
         if (connectivityManager == null)
             return false;
-        activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
