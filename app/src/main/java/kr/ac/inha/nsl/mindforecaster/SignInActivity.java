@@ -9,9 +9,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -38,13 +40,8 @@ public class SignInActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN}, 1);
 
-        try {
-            Tools.init(this);
-            init();
-        } catch (IOException e) {
-            e.printStackTrace();
-            finish();
-        }
+        Tools.init(this);
+        init();
     }
 
     @Override
@@ -229,14 +226,15 @@ public class SignInActivity extends AppCompatActivity {
                 }
             });
         else if (loginPrefs.getString(SignInActivity.username, null) != null && loginPrefs.getString(SignInActivity.password, null) != null) {
-            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-            if (getIntent().hasExtra("eventDate")) {
-                intent.putExtra("eventDate", getIntent().getLongExtra("eventDate", 0));
-                intent.putExtra("isEvaluate", getIntent().getBooleanExtra("isEvaluate", false));
-            }
-            startActivity(intent);
-            finish();
-            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+            Toast.makeText(this, "Please connect to internet first!", Toast.LENGTH_SHORT).show();
+            // Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+            // if (getIntent().hasExtra("eventDate")) {
+            //     intent.putExtra("eventDate", getIntent().getLongExtra("eventDate", 0));
+            //     intent.putExtra("isEvaluate", getIntent().getBooleanExtra("isEvaluate", false));
+            // }
+            // startActivity(intent);
+            // finish();
+            // overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         }
     }
 }

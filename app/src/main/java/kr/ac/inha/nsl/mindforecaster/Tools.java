@@ -21,11 +21,13 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.Settings;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.res.ResourcesCompat;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
+
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
@@ -34,6 +36,15 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.location.ActivityTransition;
+import com.google.android.gms.location.ActivityTransitionRequest;
+import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -72,46 +83,141 @@ import java.util.concurrent.Executors;
 import static java.lang.System.currentTimeMillis;
 
 class Tools {
-    static void init(Activity activity) throws IOException {
+    static void init(final Activity activity) {
         // set up internet connectivity checker
-        connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        PACKAGE_NAME = activity.getPackageName();
 
-        // set up usage access data collection
+        connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
+
         usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
+        locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
+        activityRecognitionSubmitUrl = activity.getString(R.string.url_activity_recognition_submit, activity.getString(R.string.server_ip));
+    }
+
+    static void setUpDataSubmission(final Activity activity) throws IOException {
+        // set up usage access data collection
         if (!usageAccessIsGranted(activity)) {
             Toast.makeText(activity, "Please provide usage access to this app in settings!", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
             activity.startActivity(intent);
         }
-        usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
-        PACKAGE_NAME = activity.getPackageName();
 
         // set up location data collection
-        locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
         if (!setUpLocationCallback(activity))
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+
+        // set up activity detection
+        List<ActivityTransition> transitions = new ArrayList<>();
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.RUNNING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.RUNNING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+
+        ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(activity);
+        Intent intent = new Intent(activity, ActivityTransitionDetectionService.class);
+        PendingIntent transitionPendingIntent = PendingIntent.getService(activity, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        ActivityTransitionRequest activityTransitionRequest = new ActivityTransitionRequest(transitions);
+        Task<Void> task = activityRecognitionClient.requestActivityTransitionUpdates(activityTransitionRequest, transitionPendingIntent);
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                activityRecognitionDataFile = new File(activity.getFilesDir(), "mf-activity-recognition.txt");
+                Toast.makeText(activity, "Activity tracking has successfully started!", Toast.LENGTH_LONG).show();
+            }
+        });
+        task.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(activity, "Failed to start trackign activity. Please refer to the developer!", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+            }
+        });
     }
 
+    static boolean setUpLocationCallback(final Activity activity) throws IOException {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationDataFile = new File(activity.getFilesDir(), "mf-locs.txt");
+            boolean fileAvailable = locationDataFile.exists() || locationDataFile.createNewFile();
+
+            if (!fileAvailable) {
+                locationDataFile = null;
+                return false;
+            }
+
+            LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+            LocationListener locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    long timestamp = LAST_REBOOT_TIMESTAMP + location.getElapsedRealtimeNanos() / 1000000;
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    float bearing = location.getBearing();
+                    double altitude = location.getAltitude();
+                    float speed = location.getSpeed();
+                    try {
+                        storeLocationData(timestamp, latitude, longitude, bearing, altitude, speed);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+
+                }
+            };
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 5, locationListener); // updates if user moves at least 1 meter from current location
+            return true;
+        } else return false;
+    }
+
+
     // region Variables
-    static final short
-            RES_OK = 0,
-            RES_SRV_ERR = -1,
-            RES_FAIL = 1;
+    private static String PACKAGE_NAME;
+    static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
+    static final short RES_OK = 0;
+    static final short RES_SRV_ERR = -1;
+    static final short RES_FAIL = 1;
 
     private static int cellWidth, cellHeight;
+
     private static ExecutorService executor = Executors.newCachedThreadPool();
+
     private static SparseArray<PendingIntent> eventNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> intervNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> sundayNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> dailyNotifs = new SparseArray<>();
+
+    private static ConnectivityManager connectivityManager;
+
     private static UsageStatsManager usageStatsManager;
     private static String usageStatsSubmitUrl;
-    private static String PACKAGE_NAME;
-    private static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
+
     private static File locationDataFile;
     private static String locationDataSubmitUrl;
-    private static ConnectivityManager connectivityManager;
+
+    private static File activityRecognitionDataFile;
+    private static String activityRecognitionSubmitUrl;
     // endregion
+
 
     static synchronized String post(String url, List<NameValuePair> params) throws IOException {
         HttpPost httppost = new HttpPost(url);
@@ -122,6 +228,7 @@ class Tools {
 
         checkAndSendUsageAccessStats();
         checkAndSendLocationData();
+        checkAndSendActivityData();
 
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
             return Tools.inputStreamToString(response.getEntity().getContent());
@@ -129,6 +236,9 @@ class Tools {
     }
 
     private static void checkAndSendUsageAccessStats() throws IOException {
+        if (usageStatsManager == null)
+            return;
+
         long lastSavedTimestamp = SignInActivity.loginPrefs.getLong("lastUsageSubmissionTime", -1);
 
         Calendar fromCal = Calendar.getInstance(Locale.getDefault());
@@ -206,58 +316,47 @@ class Tools {
     }
 
     private static void checkAndSendActivityData() throws IOException {
-        // TODO: fill with code from Google Activity Recognition API
+        if (activityRecognitionDataFile == null)
+            return;
+
+        String activityRecognitionData = readActivityRecognitionData();
+        if (activityRecognitionData.length() == 0)
+            return;
+
+        if (!Character.isDigit(activityRecognitionData.charAt(activityRecognitionData.length() - 1)))
+            activityRecognitionData = activityRecognitionData.substring(0, activityRecognitionData.length() - 1);
+
+        HttpPost httppost = new HttpPost(activityRecognitionSubmitUrl);
+        @SuppressWarnings("deprecation")
+        HttpClient httpclient = new DefaultHttpClient();
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
+        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+        params.add(new BasicNameValuePair("data", activityRecognitionData));
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        HttpResponse response = httpclient.execute(httppost);
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            if (activityRecognitionDataFile.delete())
+                //noinspection ResultOfMethodCallIgnored
+                activityRecognitionDataFile.createNewFile();
+        }
     }
 
-    static boolean setUpLocationCallback(Activity activity) throws IOException {
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationDataFile = new File(activity.getFilesDir(), "mf-locs.txt");
-            boolean fileAvailable = locationDataFile.exists() || locationDataFile.createNewFile();
+    static void execute(MyRunnable runnable) {
+        disable_touch(runnable.activity);
+        executor.execute(runnable);
+    }
 
-            if (!fileAvailable) {
-                locationDataFile = null;
-                return false;
-            }
 
-            LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    long timestamp = LAST_REBOOT_TIMESTAMP + location.getElapsedRealtimeNanos() / 1000000;
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    float bearing = location.getBearing();
-                    double altitude = location.getAltitude();
-                    float speed = location.getSpeed();
-                    try {
-                        storeLocationData(timestamp, latitude, longitude, bearing, altitude, speed);
-                        if (isNetworkAvailable()) {
-                            checkAndSendLocationData();
-                            checkAndSendUsageAccessStats();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            };
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 5, locationListener); // updates if user moves at least 1 meter from current location
-            return true;
-        } else return false;
+    @SuppressWarnings("unused")
+    private static boolean isLocationEnabled(Context context) {
+        try {
+            return Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE) != Settings.Secure.LOCATION_MODE_OFF;
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private static boolean usageAccessIsGranted(Context context) {
@@ -272,13 +371,21 @@ class Tools {
         }
     }
 
-    private static void storeLocationData(long timestamp, double latitude, double longitude, float bearing, double altitude, float speed) throws IOException {
+    static boolean isNetworkAvailable() {
+        if (connectivityManager == null)
+            return false;
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+
+    private static synchronized void storeLocationData(long timestamp, double latitude, double longitude, float bearing, double altitude, float speed) throws IOException {
         Log.e("LOCATION UPDATE", String.format(Locale.getDefault(), "(ts, lat, lon, bear, alt, spd)=(%d, %f, %f, %f, %f, %f)", timestamp, latitude, longitude, bearing, altitude, speed));
         FileWriter writer = new FileWriter(locationDataFile, true);
         writer.write(String.format(
                 Locale.getDefault(),
                 "%d %f %f %f %f %f\n",
-                timestamp,
+                timestamp / 1000,
                 latitude,
                 longitude,
                 bearing,
@@ -288,7 +395,7 @@ class Tools {
         writer.close();
     }
 
-    private static String readLocationData() throws IOException {
+    private static synchronized String readLocationData() throws IOException {
         StringBuilder result = new StringBuilder();
 
         FileReader reader = new FileReader(locationDataFile);
@@ -299,6 +406,32 @@ class Tools {
 
         return result.toString();
     }
+
+    static synchronized void storeActivityRecognitionData(long timestamp, String activity, String transition) throws IOException {
+        Log.e("ACTIVITY UPDATE", String.format(Locale.getDefault(), "(Activity,Transition)=(%s, %s)", activity, transition));
+        FileWriter writer = new FileWriter(activityRecognitionDataFile, true);
+        writer.write(String.format(
+                Locale.getDefault(),
+                "%d %s %s\n",
+                timestamp / 1000,
+                activity,
+                transition
+        ));
+        writer.close();
+    }
+
+    private static synchronized String readActivityRecognitionData() throws IOException {
+        StringBuilder result = new StringBuilder();
+
+        FileReader reader = new FileReader(activityRecognitionDataFile);
+        char[] buf = new char[128];
+        int read;
+        while ((read = reader.read(buf)) > 0)
+            result.append(buf, 0, read);
+
+        return result.toString();
+    }
+
 
     static void setCellSize(int width, int height) {
         cellWidth = width;
@@ -323,6 +456,7 @@ class Tools {
         }
     }
 
+
     private static String inputStreamToString(InputStream is) throws IOException {
         InputStreamReader reader = new InputStreamReader(is);
         StringBuilder sb = new StringBuilder();
@@ -344,11 +478,6 @@ class Tools {
     @SuppressWarnings("unused")
     private static String convertToUTF8(String s) {
         return new String(s.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-    }
-
-    static void execute(MyRunnable runnable) {
-        disable_touch(runnable.activity);
-        executor.execute(runnable);
     }
 
     @ColorInt
@@ -377,12 +506,6 @@ class Tools {
             return Color.argb(0xff, 0xff, (int) (c * (100 - level)), 0);*/
     }
 
-    static boolean isNetworkAvailable() {
-        if (connectivityManager == null)
-            return false;
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
 
     private static void writeToFile(Context context, String fileName, String data) {
         try {
@@ -423,6 +546,7 @@ class Tools {
 
         return ret;
     }
+
 
     static void cacheMonthlyEvents(Context context, Event[] events, int month, int year) {
         if (events.length == 0)
@@ -515,6 +639,7 @@ class Tools {
         return readOfflineInterventions(context, "peer");
     }
 
+
     static void addDailyNotif(Context context, Calendar when, String text, boolean isEvaluate) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlaramReceiverEveryDay.class);
@@ -584,6 +709,7 @@ class Tools {
         map.remove(notif_id);
     }
 
+
     private static void disable_touch(Activity activity) {
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
@@ -591,6 +717,7 @@ class Tools {
     static void enable_touch(Activity activity) {
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
+
 
     static <T> void shuffle(T[] array) {
         int n = array.length;

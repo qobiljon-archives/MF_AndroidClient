@@ -23,6 +23,7 @@
 
     <string name="url_usage_stats_submit" translatable="false">http://%1$s/usage_stats_submit</string>
     <string name="url_location_data_submit" translatable="false">http://%1$s/location_data_submit</string>
+    <string name="url_activity_recognition_submit" translatable="false">http://%1$s/activity_recognition_submit</string>
 
 
     <string name="app_name">MindForecaster</string>
