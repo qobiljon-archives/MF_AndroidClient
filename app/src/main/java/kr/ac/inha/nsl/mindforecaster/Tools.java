@@ -129,8 +129,19 @@ class Tools {
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                activityRecognitionDataFile = new File(activity.getFilesDir(), "mf-activity-recognition.txt");
-                Toast.makeText(activity, "Activity tracking has successfully started!", Toast.LENGTH_LONG).show();
+                try {
+                    activityRecognitionDataFile = new File(activity.getFilesDir(), "mf-activity-recognition.txt");
+
+                    boolean fileAvailable = activityRecognitionDataFile.exists() || activityRecognitionDataFile.createNewFile();
+                    if (fileAvailable)
+                        Toast.makeText(activity, "Activity tracking has successfully started!", Toast.LENGTH_LONG).show();
+                    else {
+                        locationDataFile = null;
+                        Toast.makeText(activity, "Failed to start trackign activity. Please refer to the developer!", Toast.LENGTH_LONG).show();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         task.addOnFailureListener(new OnFailureListener() {
@@ -674,7 +685,7 @@ class Tools {
         eventNotifs.put((int) event_id, pendingIntent);
     }
 
-    static void addIntervNotif(Context context, Calendar when, long event_id, String intervText, String eventText) {
+    static void addInterventionNotification(Context context, Calendar when, long event_id, String intervText, String eventText) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverIntervention.class);
         intent.putExtra("Content1", intervText);
@@ -1002,13 +1013,12 @@ class Event {
         }
     }
 
-    static void updateIntervReminder(Context context) {
+    static void updateInterventionReminders(Context context) {
         Calendar today = Calendar.getInstance(Locale.getDefault()), calIntervBeforeEvent, calIntervAfterEvent;
         for (Event event : currentEventBank) {
             Calendar calIntervNotifId = Calendar.getInstance(Locale.getDefault());
             calIntervNotifId.setTimeInMillis(event.getStartTime().getTimeInMillis());
             calIntervNotifId.add(Calendar.MILLISECOND, 1);
-
 
             if (event.getInterventionReminder() < 0) {
                 calIntervBeforeEvent = event.getStartTime();
@@ -1016,7 +1026,7 @@ class Event {
                 if (calIntervBeforeEvent.before(today)) {
                     Tools.cancelNotif(context, (int) calIntervNotifId.getTimeInMillis());
                 } else
-                    Tools.addIntervNotif(
+                    Tools.addInterventionNotification(
                             context,
                             calIntervBeforeEvent,
                             (int) calIntervNotifId.getTimeInMillis(),
@@ -1039,7 +1049,7 @@ class Event {
                 if (calIntervAfterEvent.before(today)) {
                     Tools.cancelNotif(context, (int) calIntervNotifId.getTimeInMillis());
                 } else
-                    Tools.addIntervNotif(
+                    Tools.addInterventionNotification(
                             context,
                             calIntervAfterEvent,
                             (int) calIntervNotifId.getTimeInMillis(),

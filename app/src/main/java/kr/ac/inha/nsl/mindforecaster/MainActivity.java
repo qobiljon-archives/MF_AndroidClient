@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 Event.setCurrentEventBank(events);
                                 Event.updateEventReminders(MainActivity.this);
-                                Event.updateIntervReminder(MainActivity.this);
+                                Event.updateInterventionReminders(MainActivity.this);
                                 Tools.cacheMonthlyEvents(MainActivity.this, events, month, year);
 
                                 runOnUiThread(new Runnable() {
@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             Event.setCurrentEventBank(Tools.readOfflineMonthlyEvents(this, currentCal.get(Calendar.MONTH), currentCal.get(Calendar.YEAR)));
             Event.updateEventReminders(MainActivity.this);
-            Event.updateIntervReminder(MainActivity.this);
+            Event.updateInterventionReminders(MainActivity.this);
             for (row = 0; row < event_grid.getRowCount(); row++)
                 for (col = 0; col < event_grid.getColumnCount(); col++) {
                     Calendar day = Calendar.getInstance(Locale.getDefault());

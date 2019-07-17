@@ -42,6 +42,8 @@ public class SignInActivity extends AppCompatActivity {
 
         Tools.init(this);
         init();
+
+        Toast.makeText(this, "PW: " + loginPrefs.getString("password", null), Toast.LENGTH_SHORT).show();
     }
 
     @Override

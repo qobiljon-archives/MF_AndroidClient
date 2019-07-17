@@ -7,6 +7,7 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.core.app.NotificationCompat;
 
 public class AlarmReceiverIntervention extends BroadcastReceiver {
@@ -19,7 +20,7 @@ public class AlarmReceiverIntervention extends BroadcastReceiver {
         stackBuilder.addParentStack(SignInActivity.class);
         stackBuilder.addNextIntent(notificationIntent);
 
-        int notificaiton_id = (int) intent.getLongExtra("notification_id", 0);
+        int interventionId = (int) intent.getLongExtra("notification_id", 0);
 
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(context.getString(R.string.intervention));
@@ -35,12 +36,12 @@ public class AlarmReceiverIntervention extends BroadcastReceiver {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setContentText(intent.getStringExtra("Content1")).setStyle(inboxStyle);
 
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(notificaiton_id, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(interventionId, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = builder.setContentIntent(pendingIntent).build();
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
-            notificationManager.notify(notificaiton_id, notification);
+            notificationManager.notify(interventionId, notification);
         }
     }
 }
