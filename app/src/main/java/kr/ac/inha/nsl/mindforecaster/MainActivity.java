@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         periodFrom.setTimeInMillis((long) cells[0][0].getTag());
         periodTill.setTimeInMillis((long) cells[cells.length - 1][cells[0].length - 1].getTag());
         periodTill.add(Calendar.DAY_OF_MONTH, 1);
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_events_fetch, getString(R.string.server_ip)),
@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateInterventions() {
-        if (Tools.isNetworkAvailable(this)) {
+        if (Tools.isNetworkAvailable()) {
             Tools.execute(new MyRunnable(this) {
                 @Override
                 public void run() {

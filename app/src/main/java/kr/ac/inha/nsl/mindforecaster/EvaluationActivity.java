@@ -116,7 +116,7 @@ public class EvaluationActivity extends AppCompatActivity {
     }
 
     public void saveClick(View view) {
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_evaluation_submit, getString(R.string.server_ip)),

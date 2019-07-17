@@ -701,7 +701,7 @@ public class EventActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        if (Tools.isNetworkAvailable(EventActivity.this))
+                        if (Tools.isNetworkAvailable())
                             Tools.execute(new MyRunnable(
                                     EventActivity.this,
                                     getString(R.string.url_event_delete, getString(R.string.server_ip)),
@@ -772,7 +772,7 @@ public class EventActivity extends AppCompatActivity {
                             Toast.makeText(EventActivity.this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
                         break;
                     case DialogInterface.BUTTON_NEUTRAL:
-                        if (Tools.isNetworkAvailable(EventActivity.this))
+                        if (Tools.isNetworkAvailable())
                             Tools.execute(new MyRunnable(
                                     EventActivity.this,
                                     getString(R.string.url_event_delete, getString(R.string.server_ip)),
@@ -987,7 +987,7 @@ public class EventActivity extends AppCompatActivity {
 
         event.setEvaluated(false);
 
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             createEvent();
         else
             Toast.makeText(this, "No network! Please connect to network first!", Toast.LENGTH_SHORT).show();
@@ -1294,7 +1294,7 @@ public class EventActivity extends AppCompatActivity {
             intervView.setVisibility(View.GONE);
         }
 
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_evaluation_fetch, getString(R.string.server_ip)),

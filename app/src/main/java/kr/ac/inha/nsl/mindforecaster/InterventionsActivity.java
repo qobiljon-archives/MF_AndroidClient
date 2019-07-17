@@ -254,7 +254,7 @@ public class InterventionsActivity extends AppCompatActivity {
                 sortLinearLayout.setVisibility(View.VISIBLE);
                 currentIntervsList.clear();
                 descr2IntervMap.clear();
-                if (Tools.isNetworkAvailable(this)) {
+                if (Tools.isNetworkAvailable()) {
                     Tools.execute(new MyRunnable(
                             this,
                             SignInActivity.loginPrefs.getString(SignInActivity.username, null),
@@ -346,7 +346,7 @@ public class InterventionsActivity extends AppCompatActivity {
                 sortLinearLayout.setVisibility(View.VISIBLE);
                 currentIntervsList.clear();
                 descr2IntervMap.clear();
-                if (Tools.isNetworkAvailable(this)) {
+                if (Tools.isNetworkAvailable()) {
                     Tools.execute(new MyRunnable(
                             this,
                             SignInActivity.loginPrefs.getString(SignInActivity.username, null),
@@ -448,7 +448,7 @@ public class InterventionsActivity extends AppCompatActivity {
                     SignInActivity.loginPrefs.getString(SignInActivity.username, null),
                     Intervention.CREATION_METHOD_USER
             );
-            if (Tools.isNetworkAvailable(this))
+            if (Tools.isNetworkAvailable())
                 Tools.execute(new MyRunnable(
                         this,
                         getString(R.string.url_intervention_create, getString(R.string.server_ip)),

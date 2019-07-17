@@ -118,7 +118,7 @@ public class SignInActivity extends AppCompatActivity {
     public void signIn(String username, String password) {
         loadingPanel.setVisibility(View.VISIBLE);
 
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_login, getString(R.string.server_ip)),

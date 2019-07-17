@@ -53,7 +53,7 @@ public class SurveyActivity extends AppCompatActivity {
         surveyChildHolder2.removeAllViews();
         surveyChildHolder3.removeAllViews();
 
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     SignInActivity.loginPrefs.getString(SignInActivity.username, null),
@@ -200,7 +200,7 @@ public class SurveyActivity extends AppCompatActivity {
     }
 
     public void saveClick(View view) {
-        if (Tools.isNetworkAvailable(this))
+        if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_survey_submit, getString(R.string.server_ip)),
