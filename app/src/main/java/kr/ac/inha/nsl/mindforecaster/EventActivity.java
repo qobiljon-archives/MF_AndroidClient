@@ -9,11 +9,6 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PorterDuff;
-
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
-
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +25,10 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
+
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
@@ -43,6 +42,44 @@ import java.util.List;
 import java.util.Locale;
 
 public class EventActivity extends AppCompatActivity {
+
+    //region Variables
+    static Event event;
+
+    private final int EVALUATION_ACTIVITY = 0, INTERVENTION_ACTIVITY = 1;
+    private ViewGroup inactiveLayout;
+    private ViewGroup stressLevelDetails;
+    private ViewGroup interventionDetails;
+    private ViewGroup repeatDetails;
+    private ViewGroup notificationDetails;
+    private TextView startDateText;
+    private TextView startTimeText;
+    private TextView endDateText;
+    private TextView endTimeText;
+    private TextView selectedInterv;
+    private TextView intervReminderTxt;
+    private TextView saveButton;
+    private TextView cancelButton;
+    private TextView deleteButton;
+    private TextView repeatValueText;
+    private TextView stressLevelValueText;
+    private TextView notificationValueText;
+    private TextView interventionTextView;
+    private TextView tabEvaluation;
+    private TextView activityTitle;
+    private RadioButton customNotifRadioButton;
+    private RadioGroup stressTypeGroup, repeatModeGroup, eventNotificationGroup;
+    private EditText eventTitle, stressCause;
+    private Switch switchAllDay;
+    private SeekBar stressLvl;
+    private ViewGroup weekdaysGroup;
+    private CheckBox[] repeatWeeklDayChecks = new CheckBox[7];
+    private ViewGroup result_details_layout;
+    private SeekBar realStressLevelSeek;
+    private SeekBar intervEffectiveness;
+    private TextView realStressReason;
+    private TextView journalTxt;
+    private boolean stressLevelPicked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,10 +123,10 @@ public class EventActivity extends AppCompatActivity {
                             break;
                         default:
                             if (InterventionsActivity.resultReminderMinutes > 0) {
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notifMinsToString(this, InterventionsActivity.resultReminderMinutes)));
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notificationMinutesToString(this, InterventionsActivity.resultReminderMinutes)));
 
                             } else
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notifMinsToString(this, InterventionsActivity.resultReminderMinutes)));
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notificationMinutesToString(this, InterventionsActivity.resultReminderMinutes)));
                             break;
                     }
                     intervReminderTxt.setVisibility(View.VISIBLE);
@@ -110,44 +147,6 @@ public class EventActivity extends AppCompatActivity {
         setResult(Activity.RESULT_CANCELED);
         super.onBackPressed();
     }
-
-    //region Variables
-    private final int EVALUATION_ACTIVITY = 0, INTERVENTION_ACTIVITY = 1;
-    static Event event;
-
-    private ViewGroup inactiveLayout;
-    private ViewGroup stressLevelDetails;
-    private ViewGroup interventionDetails;
-    private ViewGroup repeatDetails;
-    private ViewGroup notificationDetails;
-    private TextView startDateText;
-    private TextView startTimeText;
-    private TextView endDateText;
-    private TextView endTimeText;
-    private TextView selectedInterv;
-    private TextView intervReminderTxt;
-    private TextView saveButton;
-    private TextView cancelButton;
-    private TextView deleteButton;
-    private TextView repeatValueText;
-    private TextView stressLevelValueText;
-    private TextView notificationValueText;
-    private TextView interventionTextView;
-    private TextView tabEvaluation;
-    private TextView activityTitle;
-    private RadioButton customNotifRadioButton;
-    private RadioGroup stressTypeGroup, repeatModeGroup, eventNotificationGroup;
-    private EditText eventTitle, stressCause;
-    private Switch switchAllDay;
-    private SeekBar stressLvl;
-    private ViewGroup weekdaysGroup;
-    private CheckBox[] repeatWeeklDayChecks = new CheckBox[7];
-    private ViewGroup result_details_layout;
-    private SeekBar realStressLevelSeek;
-    private SeekBar intervEffectiveness;
-    private TextView realStressReason;
-    private TextView journalTxt;
-    private boolean stressLevelPicked = false;
     //endregion
 
     private void init() {
@@ -433,7 +432,7 @@ public class EventActivity extends AppCompatActivity {
                 break;
         }
 
-        notificationValueText.setText(Tools.notifMinsToString(this, event.getEventReminder()));
+        notificationValueText.setText(Tools.notificationMinutesToString(this, event.getEventReminder()));
         switch (event.getEventReminder()) {
             case 0:
                 eventNotificationGroup.check(R.id.option_none);
@@ -452,7 +451,7 @@ public class EventActivity extends AppCompatActivity {
                 break;
             default:
                 eventNotificationGroup.check(R.id.radio_btn_custom);
-                customNotifRadioButton.setText(Tools.notifMinsToString(this, event.getEventReminder()));
+                customNotifRadioButton.setText(Tools.notificationMinutesToString(this, event.getEventReminder()));
                 customNotifRadioButton.setVisibility(View.VISIBLE);
                 break;
         }
@@ -492,10 +491,10 @@ public class EventActivity extends AppCompatActivity {
                 break;
             default:
                 if (event.getInterventionReminder() > 0) {
-                    intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notifMinsToString(this, event.getInterventionReminder())));
+                    intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notificationMinutesToString(this, event.getInterventionReminder())));
 
                 } else
-                    intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notifMinsToString(this, event.getInterventionReminder())));
+                    intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notificationMinutesToString(this, event.getInterventionReminder())));
                 break;
         }
 
@@ -665,10 +664,10 @@ public class EventActivity extends AppCompatActivity {
                         break;
                     default:
                         if (event.getInterventionReminder() > 0) {
-                            intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notifMinsToString(this, event.getInterventionReminder())));
+                            intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notificationMinutesToString(this, event.getInterventionReminder())));
 
                         } else
-                            intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notifMinsToString(this, event.getInterventionReminder())));
+                            intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notificationMinutesToString(this, event.getInterventionReminder())));
                         break;
                 }
                 intervReminderTxt.setVisibility(View.VISIBLE);
@@ -1230,7 +1229,7 @@ public class EventActivity extends AppCompatActivity {
 
     public void setCustomNotifParams(int minutes) {
         event.setEventReminder(minutes);
-        notificationValueText.setText(Tools.notifMinsToString(this, minutes));
+        notificationValueText.setText(Tools.notificationMinutesToString(this, minutes));
 
         switch (minutes) {
             case 0:
@@ -1250,7 +1249,7 @@ public class EventActivity extends AppCompatActivity {
                 break;
             default:
                 eventNotificationGroup.check(R.id.radio_btn_custom);
-                customNotifRadioButton.setText(Tools.notifMinsToString(this, minutes));
+                customNotifRadioButton.setText(Tools.notificationMinutesToString(this, minutes));
                 notificationValueText.setText(customNotifRadioButton.getText().toString());
                 customNotifRadioButton.setVisibility(View.VISIBLE);
                 break;

@@ -13,21 +13,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.Settings;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
-
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
@@ -37,14 +26,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.ActivityRecognitionClient;
-import com.google.android.gms.location.ActivityTransition;
-import com.google.android.gms.location.ActivityTransitionRequest;
-import com.google.android.gms.location.DetectedActivity;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -82,132 +68,19 @@ import java.util.concurrent.Executors;
 
 import static java.lang.System.currentTimeMillis;
 
-class Tools {
-    static void init(final Activity activity) {
-        // set up internet connectivity checker
-        PACKAGE_NAME = activity.getPackageName();
+public class Tools {
 
-        connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
-        usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
-
-        usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
-        locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
-        activityRecognitionSubmitUrl = activity.getString(R.string.url_activity_recognition_submit, activity.getString(R.string.server_ip));
-    }
-
-    static void setUpDataSubmission(final Activity activity) throws IOException {
-        // set up usage access data collection
-        if (!usageAccessIsGranted(activity)) {
-            Toast.makeText(activity, "Please provide usage access to this app in settings!", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-            activity.startActivity(intent);
-        }
-
-        // set up location data collection
-        if (!setUpLocationCallback(activity))
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-
-
-        // set up activity detection
-        List<ActivityTransition> transitions = new ArrayList<>();
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.RUNNING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.RUNNING).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
-        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
-
-        ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(activity);
-        Intent intent = new Intent(activity, ActivityTransitionDetectionService.class);
-        PendingIntent transitionPendingIntent = PendingIntent.getService(activity, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        ActivityTransitionRequest activityTransitionRequest = new ActivityTransitionRequest(transitions);
-        Task<Void> task = activityRecognitionClient.requestActivityTransitionUpdates(activityTransitionRequest, transitionPendingIntent);
-        task.addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                try {
-                    activityRecognitionDataFile = new File(activity.getFilesDir(), "mf-activity-recognition.txt");
-
-                    boolean fileAvailable = activityRecognitionDataFile.exists() || activityRecognitionDataFile.createNewFile();
-                    if (fileAvailable)
-                        Toast.makeText(activity, "Activity tracking has successfully started!", Toast.LENGTH_LONG).show();
-                    else {
-                        locationDataFile = null;
-                        Toast.makeText(activity, "Failed to start trackign activity. Please refer to the developer!", Toast.LENGTH_LONG).show();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        task.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(activity, "Failed to start trackign activity. Please refer to the developer!", Toast.LENGTH_LONG).show();
-                e.printStackTrace();
-            }
-        });
-    }
-
-    static boolean setUpLocationCallback(final Activity activity) throws IOException {
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationDataFile = new File(activity.getFilesDir(), "mf-locs.txt");
-            boolean fileAvailable = locationDataFile.exists() || locationDataFile.createNewFile();
-
-            if (!fileAvailable) {
-                locationDataFile = null;
-                return false;
-            }
-
-            LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    long timestamp = LAST_REBOOT_TIMESTAMP + location.getElapsedRealtimeNanos() / 1000000;
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    float bearing = location.getBearing();
-                    double altitude = location.getAltitude();
-                    float speed = location.getSpeed();
-                    try {
-                        storeLocationData(timestamp, latitude, longitude, bearing, altitude, speed);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            };
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 5, locationListener); // updates if user moves at least 1 meter from current location
-            return true;
-        } else return false;
-    }
-
-
-    // region Variables
-    private static String PACKAGE_NAME;
+    // region Constants
     static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
     static final short RES_OK = 0;
     static final short RES_SRV_ERR = -1;
     static final short RES_FAIL = 1;
+    // endregion
 
+    // region Variables
+    static String PACKAGE_NAME;
+    static File locationDataFile;
+    static File activityRecognitionDataFile;
     private static int cellWidth, cellHeight;
 
     private static ExecutorService executor = Executors.newCachedThreadPool();
@@ -221,14 +94,44 @@ class Tools {
 
     private static UsageStatsManager usageStatsManager;
     private static String usageStatsSubmitUrl;
-
-    private static File locationDataFile;
     private static String locationDataSubmitUrl;
-
-    private static File activityRecognitionDataFile;
     private static String activityRecognitionSubmitUrl;
-    // endregion
 
+    static boolean init(final Activity activity) {
+        boolean allPermissionsProvided = true;
+
+        // set up internet connectivity checker
+        PACKAGE_NAME = activity.getPackageName();
+
+        connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
+
+        usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
+        locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
+        activityRecognitionSubmitUrl = activity.getString(R.string.url_activity_recognition_submit, activity.getString(R.string.server_ip));
+
+        // check for permissions needed for data collection
+        // check app-usage permissions
+        if (!usageAccessIsGranted(activity)) {
+            Toast.makeText(activity, "Please provide usage access to this app in settings!", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            activity.startActivity(intent);
+            allPermissionsProvided = false;
+        }
+        // check GPS location permissions (Google Play services => Last Known Location + Activity Recognition API)
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            allPermissionsProvided = false;
+        }
+
+        return allPermissionsProvided;
+    }
+
+    static void initDataCollectorService(final Activity activity) {
+        if (!DataCollectorService.isServiceRunning)
+            activity.startService(new Intent(activity, DataCollectorService.class));
+    }
+    // endregion
 
     static synchronized String post(String url, List<NameValuePair> params) throws IOException {
         HttpPost httppost = new HttpPost(url);
@@ -246,7 +149,7 @@ class Tools {
         else return null;
     }
 
-    private static void checkAndSendUsageAccessStats() throws IOException {
+    static void checkAndSendUsageAccessStats() throws IOException {
         if (usageStatsManager == null)
             return;
 
@@ -298,8 +201,8 @@ class Tools {
 
     }
 
-    private static void checkAndSendLocationData() throws IOException {
-        if (locationDataFile == null)
+    static synchronized void checkAndSendLocationData() throws IOException {
+        if (locationDataFile == null || locationDataSubmitUrl == null)
             return;
 
         String locationData = readLocationData();
@@ -326,7 +229,7 @@ class Tools {
         }
     }
 
-    private static void checkAndSendActivityData() throws IOException {
+    static void checkAndSendActivityData() throws IOException {
         if (activityRecognitionDataFile == null)
             return;
 
@@ -390,18 +293,15 @@ class Tools {
     }
 
 
-    private static synchronized void storeLocationData(long timestamp, double latitude, double longitude, float bearing, double altitude, float speed) throws IOException {
-        Log.e("LOCATION UPDATE", String.format(Locale.getDefault(), "(ts, lat, lon, bear, alt, spd)=(%d, %f, %f, %f, %f, %f)", timestamp, latitude, longitude, bearing, altitude, speed));
+    static synchronized void storeLocationData(long timestamp, double latitude, double longitude, double altitude) throws IOException {
         FileWriter writer = new FileWriter(locationDataFile, true);
         writer.write(String.format(
                 Locale.getDefault(),
-                "%d %f %f %f %f %f\n",
+                "%d %f %f %f\n",
                 timestamp / 1000,
                 latitude,
                 longitude,
-                bearing,
-                altitude,
-                speed
+                altitude
         ));
         writer.close();
     }
@@ -419,7 +319,6 @@ class Tools {
     }
 
     static synchronized void storeActivityRecognitionData(long timestamp, String activity, String transition) throws IOException {
-        Log.e("ACTIVITY UPDATE", String.format(Locale.getDefault(), "(Activity,Transition)=(%s, %s)", activity, transition));
         FileWriter writer = new FileWriter(activityRecognitionDataFile, true);
         writer.write(String.format(
                 Locale.getDefault(),
@@ -742,7 +641,7 @@ class Tools {
         }
     }
 
-    static String notifMinsToString(Context context, int minsValue) {
+    static String notificationMinutesToString(Context context, int minsValue) {
         if (minsValue == 0)
             return context.getString(R.string.none);
 
@@ -776,6 +675,9 @@ class Tools {
 }
 
 abstract class MyRunnable implements Runnable {
+    Object[] args;
+    Activity activity;
+
     MyRunnable(Activity activity, Object... args) {
         this.activity = activity;
         this.args = Arrays.copyOf(args, args.length);
@@ -789,12 +691,31 @@ abstract class MyRunnable implements Runnable {
             }
         });
     }
-
-    Object[] args;
-    Activity activity;
 }
 
 class Event {
+    static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
+    //region Variables
+    static Event[] currentEventBank;
+    private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
+    private boolean newEvent;
+    private long id;
+    private String title = "";
+    private int stressLevel = -1;
+    private int realStressLevel = -1;
+    private Calendar startTime;
+    private Calendar endTime;
+    private String intervention;
+    private int interventionReminder;
+    private long interventionLastPickedTime;
+    private String stressType = "unknown";
+    private String stressCause = "";
+    private long repeatId;
+    private long repeatTill;
+    private int repeatMode;
+    private int eventReminder;
+    private boolean evaluated;
+
     Event(long id) {
         newEvent = id == 0;
         if (newEvent)
@@ -838,30 +759,6 @@ class Event {
 
         return res;
     }
-
-    //region Variables
-    static Event[] currentEventBank;
-    private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
-    static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
-
-    private boolean newEvent;
-
-    private long id;
-    private String title = "";
-    private int stressLevel = -1;
-    private int realStressLevel = -1;
-    private Calendar startTime;
-    private Calendar endTime;
-    private String intervention;
-    private int interventionReminder;
-    private long interventionLastPickedTime;
-    private String stressType = "unknown";
-    private String stressCause = "";
-    private long repeatId;
-    private long repeatTill;
-    private int repeatMode;
-    private int eventReminder;
-    private boolean evaluated;
     //endregion
 
     static void setCurrentEventBank(Event[] bank) {
@@ -876,122 +773,6 @@ class Event {
         return idEventMap.get(key);
     }
 
-    boolean isNewEvent() {
-        return newEvent;
-    }
-
-    long getEventId() {
-        return id;
-    }
-
-    void setStartTime(Calendar startTime) {
-        this.startTime = (Calendar) startTime.clone();
-        this.startTime.set(Calendar.SECOND, 0);
-        this.startTime.set(Calendar.MILLISECOND, 0);
-    }
-
-    Calendar getStartTime() {
-        return (Calendar) startTime.clone();
-    }
-
-    void setEndTime(Calendar endTime) {
-        this.endTime = (Calendar) endTime.clone();
-        this.endTime.set(Calendar.SECOND, 0);
-        this.endTime.set(Calendar.MILLISECOND, 0);
-    }
-
-    Calendar getEndTime() {
-        return (Calendar) endTime.clone();
-    }
-
-    void setStressLevel(int stressLevel) {
-        this.stressLevel = stressLevel;
-    }
-
-    int getStressLevel() {
-        return stressLevel;
-    }
-
-    private void setRealStressLevel(int realStressLevel) {
-        this.realStressLevel = realStressLevel;
-    }
-
-    int getRealStressLevel() {
-        return realStressLevel;
-    }
-
-    void setTitle(String title) {
-        this.title = title;
-    }
-
-    String getTitle() {
-        return title;
-    }
-
-    void setIntervention(String intervention) {
-        this.intervention = intervention;
-    }
-
-    String getIntervention() {
-        return intervention;
-    }
-
-    void setStressType(String stressType) {
-        this.stressType = stressType;
-    }
-
-    String getStressType() {
-        return stressType;
-    }
-
-    void setStressCause(String stressCause) {
-        this.stressCause = stressCause;
-    }
-
-    String getStressCause() {
-        return stressCause;
-    }
-
-    void setRepeatMode(int repeatMode) {
-        this.repeatMode = repeatMode;
-    }
-
-    int getRepeatMode() {
-        return repeatMode;
-    }
-
-    private void setRepeatId(long repeatId) {
-        this.repeatId = repeatId;
-    }
-
-    void setRepeatTill(long repeatTill) {
-        this.repeatTill = repeatTill;
-    }
-
-    long getRepeatTill() {
-        return repeatTill;
-    }
-
-    long getRepeatId() {
-        return repeatId;
-    }
-
-    void setInterventionReminder(int interventionReminder) {
-        this.interventionReminder = interventionReminder;
-    }
-
-    int getInterventionReminder() {
-        return interventionReminder;
-    }
-
-    void setEventReminder(int eventReminder) {
-        this.eventReminder = eventReminder;
-    }
-
-    int getEventReminder() {
-        return eventReminder;
-    }
-
     static void updateEventReminders(Context context) {
         Calendar today = Calendar.getInstance(Locale.getDefault()), cal;
         for (Event event : currentEventBank) {
@@ -1001,7 +782,7 @@ class Event {
                 if (cal.before(today))
                     Tools.cancelNotif(context, (int) event.getEventId());
                 else {
-                    String reminderStr = Tools.notifMinsToString(context, event.getEventReminder());
+                    String reminderStr = Tools.notificationMinutesToString(context, event.getEventReminder());
                     reminderStr = reminderStr.substring(0, reminderStr.lastIndexOf(' '));
                     if (reminderStr.equals("1 " + context.getString(R.string.days)))
                         reminderStr = context.getString(R.string.tomorrow);
@@ -1070,12 +851,128 @@ class Event {
         }
     }
 
-    void setEvaluated(boolean evaluated) {
-        this.evaluated = evaluated;
+    boolean isNewEvent() {
+        return newEvent;
+    }
+
+    long getEventId() {
+        return id;
+    }
+
+    Calendar getStartTime() {
+        return (Calendar) startTime.clone();
+    }
+
+    void setStartTime(Calendar startTime) {
+        this.startTime = (Calendar) startTime.clone();
+        this.startTime.set(Calendar.SECOND, 0);
+        this.startTime.set(Calendar.MILLISECOND, 0);
+    }
+
+    Calendar getEndTime() {
+        return (Calendar) endTime.clone();
+    }
+
+    void setEndTime(Calendar endTime) {
+        this.endTime = (Calendar) endTime.clone();
+        this.endTime.set(Calendar.SECOND, 0);
+        this.endTime.set(Calendar.MILLISECOND, 0);
+    }
+
+    int getStressLevel() {
+        return stressLevel;
+    }
+
+    void setStressLevel(int stressLevel) {
+        this.stressLevel = stressLevel;
+    }
+
+    int getRealStressLevel() {
+        return realStressLevel;
+    }
+
+    private void setRealStressLevel(int realStressLevel) {
+        this.realStressLevel = realStressLevel;
+    }
+
+    String getTitle() {
+        return title;
+    }
+
+    void setTitle(String title) {
+        this.title = title;
+    }
+
+    String getIntervention() {
+        return intervention;
+    }
+
+    void setIntervention(String intervention) {
+        this.intervention = intervention;
+    }
+
+    String getStressType() {
+        return stressType;
+    }
+
+    void setStressType(String stressType) {
+        this.stressType = stressType;
+    }
+
+    String getStressCause() {
+        return stressCause;
+    }
+
+    void setStressCause(String stressCause) {
+        this.stressCause = stressCause;
+    }
+
+    int getRepeatMode() {
+        return repeatMode;
+    }
+
+    void setRepeatMode(int repeatMode) {
+        this.repeatMode = repeatMode;
+    }
+
+    long getRepeatTill() {
+        return repeatTill;
+    }
+
+    void setRepeatTill(long repeatTill) {
+        this.repeatTill = repeatTill;
+    }
+
+    long getRepeatId() {
+        return repeatId;
+    }
+
+    private void setRepeatId(long repeatId) {
+        this.repeatId = repeatId;
+    }
+
+    int getInterventionReminder() {
+        return interventionReminder;
+    }
+
+    void setInterventionReminder(int interventionReminder) {
+        this.interventionReminder = interventionReminder;
+    }
+
+    int getEventReminder() {
+        return eventReminder;
+    }
+
+    void setEventReminder(int eventReminder) {
+        this.eventReminder = eventReminder;
     }
 
     boolean isEvaluated() {
         return evaluated;
+    }
+
+    void setEvaluated(boolean evaluated) {
+        this.evaluated = evaluated;
     }
 
     long getInterventionLastPickedTime() {
@@ -1148,6 +1045,17 @@ class Event {
 class Intervention {
     // static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;
+    static Intervention[] systemInterventionBank;
+    static Intervention[] peerInterventionBank;
+    static Intervention[] currentInterventionBank;
+    private static HashMap<String, Intervention> descr2IntervMap = new HashMap<>();
+    private String description;
+    private String creator;
+    private short creationMethod;
+    private boolean isPublic;
+    private short numberOfSelections;
+    private short numberOfLikes;
+    private short numberOfDislikes;
 
     Intervention(String description, @Nullable String creator, int creationMethod, boolean isPublic, int numberOfSelections, int numberOfLikes, int numberOfDislikes) {
         this.description = description;
@@ -1201,18 +1109,17 @@ class Intervention {
         return descr2IntervMap.get(description);
     }
 
-    static Intervention[] systemInterventionBank;
-    static Intervention[] peerInterventionBank;
-    static Intervention[] currentInterventionBank;
-    private static HashMap<String, Intervention> descr2IntervMap = new HashMap<>();
-
-    private String description;
-    private String creator;
-    private short creationMethod;
-    private boolean isPublic;
-    private short numberOfSelections;
-    private short numberOfLikes;
-    private short numberOfDislikes;
+    static Intervention from_json(JSONObject object) throws JSONException {
+        return new Intervention(
+                object.getString("description"),
+                object.getString("creator"),
+                object.getInt("creation_method"),
+                object.getBoolean("is_public"),
+                object.getInt("number_of_selections"),
+                object.getInt("number_of_likes"),
+                object.getInt("number_of_dislikes")
+        );
+    }
 
     String getDescription() {
         return description;
@@ -1252,18 +1159,6 @@ class Intervention {
 
     void increaseNumberOfDislikes() {
         this.numberOfDislikes++;
-    }
-
-    static Intervention from_json(JSONObject object) throws JSONException {
-        return new Intervention(
-                object.getString("description"),
-                object.getString("creator"),
-                object.getInt("creation_method"),
-                object.getBoolean("is_public"),
-                object.getInt("number_of_selections"),
-                object.getInt("number_of_likes"),
-                object.getInt("number_of_dislikes")
-        );
     }
 
     JSONObject to_json() throws JSONException {

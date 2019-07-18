@@ -36,18 +36,34 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+
+    // region Variables
+    final static int EVENT_ACTIVITY = 0;
+    static final int SURVEY_ACTIVITY = 0;
+    
+    // region CellClick Listener
+    private LinearLayout.OnClickListener cellClick = new LinearLayout.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            showTodayEvents((long) view.getTag());
+        }
+    };
+    private GridLayout event_grid;
+    private ViewGroup[][] cells = new ViewGroup[7][5];
+    private TextView monthNameTextView;
+    private TextView yearValueTextView;
+    private Calendar currentCal;
+    // endregion
+    // endregion
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSupportActionBar((Toolbar) findViewById(R.id.my_toolbar));
 
-        try {
-            Tools.setUpDataSubmission(this);
-            init();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        init();
+        Tools.initDataCollectorService(this);
     }
 
     @Override
@@ -77,25 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onStop();
     }
-
-    // region Variables
-    final static int EVENT_ACTIVITY = 0;
-
-    private GridLayout event_grid;
-    private ViewGroup[][] cells = new ViewGroup[7][5];
-    private TextView monthNameTextView;
-    private TextView yearValueTextView;
-    private Calendar currentCal;
-
-    // region CellClick Listener
-    LinearLayout.OnClickListener cellClick = new LinearLayout.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            showTodayEvents((long) view.getTag());
-        }
-    };
-    // endregion
-    // endregion
 
     private void showTodayEvents(long dateTimeMillis) {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -455,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
         Intent intent = new Intent(MainActivity.this, SignInActivity.class);
         startActivity(intent);
+        stopService(new Intent(getApplicationContext(), DataCollectorService.class));
         finish();
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
@@ -482,8 +480,6 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 0);
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
-
-    static final int SURVEY_ACTIVITY = 0;
 
     public void surveyClick(MenuItem item) {
         Intent intent = new Intent(this, SurveyActivity.class);

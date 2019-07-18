@@ -25,19 +25,20 @@ import java.util.List;
 
 public class EvaluationActivity extends AppCompatActivity {
 
+    //region Variables
+    private EditText journalText, realStressReason;
+
+    private CheckBox eventCompletionCheck, intervCompletionCheck, intervSharingCheck;
+    private SeekBar realStressLevel;
+    private SeekBar expectedStressLevel;
+    private SeekBar intervEffectiveness;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evaluation);
         init();
     }
-
-    //region Variables
-    private CheckBox eventCompletionCheck, intervCompletionCheck, intervSharingCheck;
-    private SeekBar realStressLevel;
-    private SeekBar expectedStressLevel;
-    private SeekBar intervEffectiveness;
-    EditText journalText, realStressReason;
     //endregion
 
     private void init() {

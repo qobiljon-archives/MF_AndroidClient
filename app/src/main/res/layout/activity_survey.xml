@@ -59,8 +59,8 @@
             android:id="@+id/main_view_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
             android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
             android:orientation="vertical">
 
             <TextView
@@ -76,10 +76,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="expandSurveyHolder1"
-                android:paddingBottom="20dp"
-                android:paddingTop="20dp"
                 android:drawableEnd="@drawable/img_expand"
+                android:onClick="expandSurveyHolder1"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
                 android:text="@string/survey1_tab_txt" />
 
             <LinearLayout
@@ -116,10 +116,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="expandSurveyHolder2"
-                android:paddingBottom="20dp"
-                android:paddingTop="20dp"
                 android:drawableEnd="@drawable/img_expand"
+                android:onClick="expandSurveyHolder2"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
                 android:text="@string/survey2_tab_txt" />
 
             <LinearLayout
@@ -155,10 +155,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="expandSurveyHolder3"
-                android:paddingBottom="20dp"
-                android:paddingTop="20dp"
                 android:drawableEnd="@drawable/img_expand"
+                android:onClick="expandSurveyHolder3"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
                 android:text="@string/survey3_tab_txt" />
 
             <LinearLayout
@@ -180,9 +180,9 @@
                     android:id="@+id/survey3_child_holder"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:background="@drawable/bg_datetime_view"
-                    android:padding="10dp"/>
+                    android:orientation="vertical"
+                    android:padding="10dp" />
             </LinearLayout>
 
             <View

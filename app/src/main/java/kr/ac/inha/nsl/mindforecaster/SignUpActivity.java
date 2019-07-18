@@ -19,6 +19,14 @@ import java.util.List;
 
 public class SignUpActivity extends AppCompatActivity {
 
+    // region Variables
+    private EditText name;
+    private EditText login;
+    private EditText password;
+    private EditText confPassword;
+    private RelativeLayout loadingPanel;
+    // endregion
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,14 +39,6 @@ public class SignUpActivity extends AppCompatActivity {
         super.onPause();
         overridePendingTransition(0, 0);
     }
-
-    // region Variables
-    private EditText name;
-    private EditText login;
-    private EditText password;
-    private EditText confPassword;
-    private RelativeLayout loadingPanel;
-    // endregion
 
     private void init() {
         // region Initialize UI Variables

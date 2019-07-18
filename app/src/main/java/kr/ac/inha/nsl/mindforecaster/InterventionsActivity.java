@@ -35,18 +35,11 @@ import java.util.List;
 
 public class InterventionsActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_interventions);
-        init();
-    }
-
     //region Variables
-    private boolean selfIntervention = true;
     static Intervention resultIntervention = null;
     static int resultReminderMinutes = 0;
 
+    private boolean selfIntervention = true;
     private EditText intervTitleText;
     private View intervChoice;
     private ArrayAdapter<String> intervListAdapter;
@@ -61,10 +54,15 @@ public class InterventionsActivity extends AppCompatActivity {
     private TextView requestMessageTxt;
     private RadioGroup sortRadioGroup;
     private ViewGroup sortLinearLayout;
-
     private InputMethodManager imm;
-
     //endregion
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_interventions);
+        init();
+    }
 
     private void init() {
         intervChoice = findViewById(R.id.intervention_choice);
@@ -218,7 +216,7 @@ public class InterventionsActivity extends AppCompatActivity {
             default:
                 intervReminderRadGroup.check(R.id.option_custom);
                 customReminderRadioButton.setTag(EventActivity.event.getInterventionReminder());
-                customReminderRadioButton.setText(Tools.notifMinsToString(this, EventActivity.event.getInterventionReminder()));
+                customReminderRadioButton.setText(Tools.notificationMinutesToString(this, EventActivity.event.getInterventionReminder()));
                 customReminderRadioButton.setVisibility(View.VISIBLE);
                 break;
         }
@@ -545,7 +543,7 @@ public class InterventionsActivity extends AppCompatActivity {
         resultReminderMinutes = minutes;
         customReminderRadioButton.setTag(String.valueOf(minutes));
         intervReminderRadGroup.check(R.id.option_custom);
-        customReminderRadioButton.setText(Tools.notifMinsToString(this, minutes));
+        customReminderRadioButton.setText(Tools.notificationMinutesToString(this, minutes));
         customReminderRadioButton.setVisibility(View.VISIBLE);
     }
 }

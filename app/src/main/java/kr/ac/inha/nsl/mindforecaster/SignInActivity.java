@@ -9,15 +9,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -32,6 +31,18 @@ import java.util.Locale;
 
 public class SignInActivity extends AppCompatActivity {
 
+    // region Constants
+    static final String username = "username", password = "password";
+    // endregion
+
+    // region Variables
+    static boolean permissionsReceived = false;
+    static SharedPreferences loginPrefs = null;
+    private EditText userLogin;
+    private EditText userPassword;
+    private RelativeLayout loadingPanel;
+    // endregion
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,10 +51,13 @@ public class SignInActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN}, 1);
 
-        Tools.init(this);
+        permissionsReceived = Tools.init(this);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         init();
-
-        Toast.makeText(this, "PW: " + loginPrefs.getString("password", null), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -52,11 +66,7 @@ public class SignInActivity extends AppCompatActivity {
             // LOCATION PERMISSION REQUEST
 
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                try {
-                    Tools.setUpLocationCallback(this);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Tools.initDataCollectorService(this);
             }
         }
     }
@@ -66,15 +76,6 @@ public class SignInActivity extends AppCompatActivity {
         super.onStop();
         loadingPanel.setVisibility(View.GONE);
     }
-
-    // region Variables
-    private EditText userLogin;
-    private EditText userPassword;
-    private RelativeLayout loadingPanel;
-
-    static SharedPreferences loginPrefs = null;
-    static final String username = "username", password = "password";
-    // endregion
 
     private void init() {
         // region Initialize UI Variables
@@ -89,7 +90,8 @@ public class SignInActivity extends AppCompatActivity {
         if (loginPrefs.contains(SignInActivity.username) && loginPrefs.contains(SignInActivity.password)) {
             loadingPanel.setVisibility(View.VISIBLE);
             signIn(loginPrefs.getString(SignInActivity.username, null), loginPrefs.getString(SignInActivity.password, null));
-        } else Toast.makeText(this, "No log in yet", Toast.LENGTH_SHORT).show();
+        } else
+            Toast.makeText(this, "Not logged in yet!)", Toast.LENGTH_SHORT).show();
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (mNotificationManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -116,6 +118,12 @@ public class SignInActivity extends AppCompatActivity {
 
     public void signIn(String username, String password) {
         loadingPanel.setVisibility(View.VISIBLE);
+
+        if (!permissionsReceived) {
+            Toast.makeText(this, "Please provide necessary permissions before signing in!", Toast.LENGTH_SHORT).show();
+            loadingPanel.setVisibility(View.GONE);
+            return;
+        }
 
         if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(

@@ -16,20 +16,21 @@ import java.util.Locale;
 public class NotifSettingsDialog extends DialogFragment {
 
     //region Variables
-    ViewGroup root;
-    TextView sundayTxt, everyMorningTxt, everyEveningTxt;
     static Calendar sunday = Calendar.getInstance(Locale.getDefault()), everyMorning = Calendar.getInstance(Locale.getDefault()), everyEvening = Calendar.getInstance(Locale.getDefault());
     static Calendar sundayPrev = Calendar.getInstance(Locale.getDefault()), everyMorningPrev = Calendar.getInstance(Locale.getDefault()), everyEveningPrev = Calendar.getInstance(Locale.getDefault());
+
+    ViewGroup root;
+    TextView sundayTxt, everyMorningTxt, everyEveningTxt;
     //endregion
+
+    public NotifSettingsDialog() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = (ViewGroup) inflater.inflate(R.layout.dialog_notif_settings, container, true);
         init();
         return root;
-    }
-
-    public NotifSettingsDialog() {
     }
 
     private void init() {
@@ -167,11 +168,11 @@ public class NotifSettingsDialog extends DialogFragment {
     }
 
     private abstract class MyOnTimeSetListener implements TimePickerDialog.OnTimeSetListener {
+        View view;
+
         MyOnTimeSetListener(View view) {
             this.view = view;
         }
-
-        View view;
     }
 
 }

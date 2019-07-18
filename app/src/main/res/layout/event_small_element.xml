@@ -9,6 +9,6 @@
     android:ellipsize="end"
     android:maxLines="1"
     android:text="@string/dummy"
+    android:textColor="@color/white"
     android:textSize="9sp"
-    tools:ignore="SmallSp"
-    android:textColor="@color/white"/>
+    tools:ignore="SmallSp" />

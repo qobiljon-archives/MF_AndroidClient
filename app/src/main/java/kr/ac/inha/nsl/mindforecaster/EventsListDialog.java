@@ -15,6 +15,20 @@ import java.util.Locale;
 
 public class EventsListDialog extends DialogFragment {
 
+    private ViewGroup root;
+    private View.OnClickListener onEventClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(getActivity(), EventActivity.class);
+            intent.putExtra("eventId", (long) view.getTag());
+            startActivityForResult(intent, MainActivity.EVENT_ACTIVITY);
+        }
+    };
+
+    public EventsListDialog() {
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = (ViewGroup) inflater.inflate(R.layout.dialog_daily_eventlist, container, true);
@@ -28,21 +42,6 @@ public class EventsListDialog extends DialogFragment {
             ((MainActivity) getActivity()).updateCalendarView();
         dismiss();
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private ViewGroup root;
-
-    private View.OnClickListener onEventClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            Intent intent = new Intent(getActivity(), EventActivity.class);
-            intent.putExtra("eventId", (long) view.getTag());
-            startActivityForResult(intent, MainActivity.EVENT_ACTIVITY);
-        }
-    };
-
-    public EventsListDialog() {
-
     }
 
     private void init() {

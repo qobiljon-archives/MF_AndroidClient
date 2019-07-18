@@ -24,18 +24,18 @@ import java.util.Locale;
 
 public class SurveyActivity extends AppCompatActivity {
 
+    //region Variables
+    private ViewGroup surveyMainHolder1, surveyChildHolder1;
+    private ViewGroup surveyMainHolder2, surveyChildHolder2;
+    private ViewGroup surveyMainHolder3, surveyChildHolder3;
+    //endregion
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey);
         init();
     }
-
-    //region Variables
-    private ViewGroup surveyMainHolder1, surveyChildHolder1;
-    private ViewGroup surveyMainHolder2, surveyChildHolder2;
-    private ViewGroup surveyMainHolder3, surveyChildHolder3;
-    //endregion
 
     private void init() {
         surveyMainHolder1 = findViewById(R.id.survey1_main_holder);
