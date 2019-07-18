@@ -2,7 +2,6 @@ package kr.ac.inha.nsl.mindforecaster;
 
 import android.Manifest;
 import android.app.AlarmManager;
-import android.app.IntentService;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -21,9 +20,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.ActivityTransition;
-import com.google.android.gms.location.ActivityTransitionEvent;
 import com.google.android.gms.location.ActivityTransitionRequest;
-import com.google.android.gms.location.ActivityTransitionResult;
 import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -98,11 +95,20 @@ public class DataCollectorService extends Service {
                         if (previouslyStoredLocation == null)
                             previouslyStoredLocation = location;
                     }
-                    if (Tools.isNetworkAvailable()) {
-                        Tools.checkAndSendLocationData();
-                        Tools.checkAndSendUsageAccessStats();
-                        Tools.checkAndSendActivityData();
-                    }
+                    Tools.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (Tools.isNetworkAvailable()) {
+                                    Tools.checkAndSendLocationData();
+                                    Tools.checkAndSendUsageAccessStats();
+                                    Tools.checkAndSendActivityData();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -209,74 +215,5 @@ public class DataCollectorService extends Service {
         //DataCollectorService getService() {
         //    return DataCollectorService.this;
         //}
-    }
-
-    public class ActivityTransitionDetectionService extends IntentService {
-        @SuppressWarnings("unused")
-        public ActivityTransitionDetectionService() {
-            super("ActivityTransitionDetectionService");
-        }
-
-        @SuppressWarnings("unused")
-        public ActivityTransitionDetectionService(String name) {
-            super(name);
-        }
-
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            if (intent != null) {
-                if (ActivityTransitionResult.hasResult(intent)) {
-                    ActivityTransitionResult result = ActivityTransitionResult.extractResult(intent);
-                    assert result != null;
-                    for (ActivityTransitionEvent event : result.getTransitionEvents()) {
-                        String activity;
-                        String transition;
-
-                        // extract activity type
-                        switch (event.getActivityType()) {
-                            case DetectedActivity.STILL:
-                                activity = "STILL";
-                                break;
-                            case DetectedActivity.WALKING:
-                                activity = "WALKING";
-                                break;
-                            case DetectedActivity.RUNNING:
-                                activity = "RUNNING";
-                                break;
-                            case DetectedActivity.ON_BICYCLE:
-                                activity = "ON_BICYCLE";
-                                break;
-                            case DetectedActivity.IN_VEHICLE:
-                                activity = "IN_VEHICLE";
-                                break;
-                            default:
-                                activity = "N/A";
-                                break;
-                        }
-
-                        // extract transition type
-                        switch (event.getTransitionType()) {
-                            case ActivityTransition.ACTIVITY_TRANSITION_ENTER:
-                                transition = "ENTER";
-                                break;
-                            case ActivityTransition.ACTIVITY_TRANSITION_EXIT:
-                                transition = "EXIT";
-                                break;
-                            default:
-                                transition = "N/A";
-                                break;
-                        }
-
-                        long timestamp = Tools.LAST_REBOOT_TIMESTAMP + event.getElapsedRealTimeNanos() / 1000000;
-                        try {
-                            Tools.storeActivityRecognitionData(timestamp, activity, transition);
-                            Log.e("ACTIVITY UPDATE", String.format(Locale.getDefault(), "(Activity,Transition)=(%s, %s)", activity, transition));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }
     }
 }

@@ -57,7 +57,7 @@
         <receiver android:name=".AlarmReceiverIntervention" />
 
         <service
-            android:name=".DataCollectorService$ActivityTransitionDetectionService"
+            android:name=".ActivityTransitionDetectionService"
             android:enabled="true" />
         <service
             android:name=".DataCollectorService"

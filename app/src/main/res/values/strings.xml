@@ -1,8 +1,7 @@
 <resources>
     <!-- REST API Server URLs -->
-    <string name="server_ip" translatable="false">kwangyoung.pythonanywhere.com</string>
-    <!--<string name="server_ip" translatable="false">165.246.43.162:8000</string>-->
-    <!--<string name="server_ip" translatable="false">165.246.43.162:8000</string>-->
+    <!--<string name="server_ip" translatable="false">kwangyoung.pythonanywhere.com</string>-->
+    <string name="server_ip" translatable="false">165.246.43.162:8000</string>
     <string name="url_register" translatable="false">http://%1$s/register/</string>
     <string name="url_login" translatable="false">http://%1$s/login/</string>
 

@@ -257,8 +257,9 @@ public class Tools {
         }
     }
 
-    static void execute(MyRunnable runnable) {
-        disable_touch(runnable.activity);
+    static void execute(Runnable runnable) {
+        if (runnable instanceof MyRunnable)
+            disable_touch(((MyRunnable) runnable).activity);
         executor.execute(runnable);
     }
 
