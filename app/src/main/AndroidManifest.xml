@@ -33,7 +33,7 @@
         </activity>
         <activity
             android:name=".ActivityMain"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/InnerActivityTheme" />
         <activity
             android:name=".ActivitySignUp"
             android:theme="@style/InnerActivityTheme" />

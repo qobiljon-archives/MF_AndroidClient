@@ -1169,7 +1169,7 @@ public class ActivityEvent extends AppCompatActivity {
             }
         };
         Calendar cal = event.getStartTime();
-        TimePickerDialog dialog = new TimePickerDialog(this, listener, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false);
+        TimePickerDialog dialog = new TimePickerDialog(this, listener, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true);
         dialog.show();
     }
 
@@ -1213,7 +1213,7 @@ public class ActivityEvent extends AppCompatActivity {
         };
 
         Calendar cal = event.getEndTime();
-        TimePickerDialog dialog = new TimePickerDialog(this, listener, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false);
+        TimePickerDialog dialog = new TimePickerDialog(this, listener, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true);
         dialog.show();
     }
 
