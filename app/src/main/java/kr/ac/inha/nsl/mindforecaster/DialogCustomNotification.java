@@ -10,7 +10,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-public class CustomNotificationDialog extends DialogFragment {
+public class DialogCustomNotification extends DialogFragment {
 
     // region Variables
     private ViewGroup root;
@@ -18,7 +18,9 @@ public class CustomNotificationDialog extends DialogFragment {
     private Spinner timeScaleSpinner;
     private Spinner timeDirectionSpinner;
     private boolean returnResult = false;
+    // endregion
 
+    // region Override
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = (ViewGroup) inflater.inflate(R.layout.dialog_custom_notification, container, true);
@@ -64,10 +66,10 @@ public class CustomNotificationDialog extends DialogFragment {
                 break;
         }
 
-        if (getActivity() instanceof EventActivity) {
-            ((EventActivity) getActivity()).setCustomNotifParams(res);
-        } else if (getActivity() instanceof InterventionsActivity) {
-            ((InterventionsActivity) getActivity()).setCustomNotifParams(res);
+        if (getActivity() instanceof ActivityEvent) {
+            ((ActivityEvent) getActivity()).setCustomNotifParams(res);
+        } else if (getActivity() instanceof ActivityInterventions) {
+            ((ActivityInterventions) getActivity()).setCustomNotificationParams(res);
         }
 
         super.onDismiss(dialog);

@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SignUpActivity extends AppCompatActivity {
+public class ActivitySignUp extends AppCompatActivity {
 
     // region Variables
     private EditText name;
@@ -80,7 +80,7 @@ public class SignUpActivity extends AppCompatActivity {
                             runOnUiThread(new MyRunnable(activity, args) {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(SignUpActivity.this, "Successfully signed up. You can sign in now!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivitySignUp.this, "Successfully signed up. You can sign in now!", Toast.LENGTH_SHORT).show();
                                     onBackPressed();
                                 }
                             });
@@ -90,7 +90,7 @@ public class SignUpActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(SignUpActivity.this, "Username already exists, please try another username!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivitySignUp.this, "Username already exists, please try another username!", Toast.LENGTH_SHORT).show();
                                     loadingPanel.setVisibility(View.GONE);
                                 }
                             });
@@ -100,7 +100,7 @@ public class SignUpActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(SignUpActivity.this, "Failed to sign up. (SERVER SIDE ERROR)", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivitySignUp.this, "Failed to sign up. (SERVER SIDE ERROR)", Toast.LENGTH_SHORT).show();
                                     loadingPanel.setVisibility(View.GONE);
                                 }
                             });
@@ -114,7 +114,7 @@ public class SignUpActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(SignUpActivity.this, "Failed to sign up.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActivitySignUp.this, "Failed to sign up.", Toast.LENGTH_SHORT).show();
                             loadingPanel.setVisibility(View.GONE);
                         }
                     });

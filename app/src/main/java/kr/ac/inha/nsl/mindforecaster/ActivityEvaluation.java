@@ -23,23 +23,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EvaluationActivity extends AppCompatActivity {
+public class ActivityEvaluation extends AppCompatActivity {
 
     //region Variables
     private EditText journalText, realStressReason;
-
     private CheckBox eventCompletionCheck, intervCompletionCheck, intervSharingCheck;
     private SeekBar realStressLevel;
     private SeekBar expectedStressLevel;
     private SeekBar intervEffectiveness;
+    //endregion
 
+    // region Override
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evaluation);
         init();
     }
-    //endregion
+    // endregion
 
     private void init() {
         eventCompletionCheck = findViewById(R.id.event_cempletion_check);
@@ -55,15 +56,15 @@ public class EvaluationActivity extends AppCompatActivity {
         final ViewGroup stressIncrDetails = findViewById(R.id.stress_incr_details_view);
         final ViewGroup stressDecrDetails = findViewById(R.id.stress_decr_details_view);
         TextView eventTitle = findViewById(R.id.event_title_text_view);
-        eventTitle.setText(getString(R.string.current_event_title, EventActivity.event.getTitle()));
+        eventTitle.setText(getString(R.string.current_event_title, ActivityEvent.event.getTitle()));
         TextView intervTitle = findViewById(R.id.intervention_title_text);
-        intervTitle.setText(getString(R.string.current_interv_title, EventActivity.event.getIntervention()));
+        intervTitle.setText(getString(R.string.current_interv_title, ActivityEvent.event.getIntervention()));
 
 
-        if (EventActivity.event.getIntervention() == null)
+        if (ActivityEvent.event.getIntervention() == null)
             interventionLayout.setVisibility(View.GONE);
 
-        int stressLevel = EventActivity.event.getStressLevel();
+        int stressLevel = ActivityEvent.event.getStressLevel();
         expectedStressLevel.setEnabled(false);
         if (stressLevel == -1) {
             LinearLayout expected_stress_level_labels = findViewById(R.id.expected_stress_level_labels);
@@ -74,13 +75,13 @@ public class EvaluationActivity extends AppCompatActivity {
             expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
         } else {
             expectedStressLevel.setProgress(stressLevel);
-            expectedStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
-            expectedStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+            expectedStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), ActivityEvent.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+            expectedStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), ActivityEvent.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
         }
 
-        realStressLevel.setProgress(EventActivity.event.getStressLevel());
-        realStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
-        realStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+        realStressLevel.setProgress(ActivityEvent.event.getStressLevel());
+        realStressLevel.getProgressDrawable().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), ActivityEvent.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
+        realStressLevel.getThumb().setColorFilter(Tools.stressLevelToColor(getApplicationContext(), ActivityEvent.event.getStressLevel()), PorterDuff.Mode.SRC_IN);
         realStressLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -122,8 +123,8 @@ public class EvaluationActivity extends AppCompatActivity {
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_evaluation_submit, getString(R.string.server_ip)),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                    SignInActivity.loginPrefs.getString(SignInActivity.password, null)
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)
             ) {
                 @Override
                 public void run() {
@@ -135,8 +136,8 @@ public class EvaluationActivity extends AppCompatActivity {
                     try {
                         params.add(new BasicNameValuePair("username", username));
                         params.add(new BasicNameValuePair("password", password));
-                        params.add(new BasicNameValuePair("eventId", String.valueOf(EventActivity.event.getEventId())));
-                        params.add(new BasicNameValuePair("interventionName", EventActivity.event.getIntervention()));
+                        params.add(new BasicNameValuePair("eventId", String.valueOf(ActivityEvent.event.getEventId())));
+                        params.add(new BasicNameValuePair("interventionName", ActivityEvent.event.getIntervention()));
                         params.add(new BasicNameValuePair("realStressLevel", String.valueOf(realStressLevel.getProgress())));
                         params.add(new BasicNameValuePair("realStressCause", realStressReason.getText().toString()));
                         params.add(new BasicNameValuePair("journal", journalText.getText().toString()));
@@ -151,7 +152,7 @@ public class EvaluationActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(EvaluationActivity.this, "Evaluation successfully submitted, thank you!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityEvaluation.this, "Evaluation successfully submitted, thank you!", Toast.LENGTH_SHORT).show();
                                         setResult(Activity.RESULT_OK);
                                         finish();
                                         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -162,7 +163,7 @@ public class EvaluationActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(EvaluationActivity.this, "Failed to submit the evaluation.", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityEvaluation.this, "Failed to submit the evaluation.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -170,7 +171,7 @@ public class EvaluationActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(EvaluationActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityEvaluation.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -182,7 +183,7 @@ public class EvaluationActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(EvaluationActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ActivityEvaluation.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

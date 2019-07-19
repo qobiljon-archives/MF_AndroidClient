@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class SurveyActivity extends AppCompatActivity {
+public class ActivitySurvey extends AppCompatActivity {
 
     //region Variables
     private ViewGroup surveyMainHolder1, surveyChildHolder1;
@@ -30,12 +30,14 @@ public class SurveyActivity extends AppCompatActivity {
     private ViewGroup surveyMainHolder3, surveyChildHolder3;
     //endregion
 
+    // region Override
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey);
         init();
     }
+    // endregion
 
     private void init() {
         surveyMainHolder1 = findViewById(R.id.survey1_main_holder);
@@ -57,8 +59,8 @@ public class SurveyActivity extends AppCompatActivity {
         if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
                     this,
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                    SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                     getString(R.string.url_survey_questions_fetch, getString(R.string.server_ip))
             ) {
                 @Override
@@ -112,7 +114,7 @@ public class SurveyActivity extends AppCompatActivity {
                                                 interv_text.setText(survTxt);
                                             }
 
-                                            Tools.cacheSurveys(SurveyActivity.this, arrSurvey1, arrSurvey2, arrSurvey3);
+                                            Tools.cacheSurveys(ActivitySurvey.this, arrSurvey1, arrSurvey2, arrSurvey3);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
@@ -135,7 +137,7 @@ public class SurveyActivity extends AppCompatActivity {
             });
         else {
             try {
-                JSONArray[] offlineSurvey = Tools.loadOfflineSurvey(this);
+                JSONArray[] offlineSurvey = Tools.loadOfflineSurveys(this);
                 if (offlineSurvey == null) {
                     Toast.makeText(this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
                     return;
@@ -205,8 +207,8 @@ public class SurveyActivity extends AppCompatActivity {
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_survey_submit, getString(R.string.server_ip)),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                    SignInActivity.loginPrefs.getString(SignInActivity.password, null)
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)
             ) {
                 @Override
                 public void run() {
@@ -248,7 +250,7 @@ public class SurveyActivity extends AppCompatActivity {
                                 ) {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(SurveyActivity.this, "Survey is submitted successfully!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivitySurvey.this, "Survey is submitted successfully!", Toast.LENGTH_SHORT).show();
                                         setResult(Activity.RESULT_OK);
                                         finish();
                                         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -261,7 +263,7 @@ public class SurveyActivity extends AppCompatActivity {
                                 ) {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(SurveyActivity.this, "Failure in survey submission. Result = 1", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivitySurvey.this, "Failure in survey submission. Result = 1", Toast.LENGTH_SHORT).show();
                                         setResult(Activity.RESULT_OK);
                                         finish();
                                         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -272,7 +274,7 @@ public class SurveyActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(SurveyActivity.this, "Failure in survey submission creation. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivitySurvey.this, "Failure in survey submission creation. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -286,7 +288,7 @@ public class SurveyActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(SurveyActivity.this, "Failed to submit the survey.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ActivitySurvey.this, "Failed to submit the survey.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

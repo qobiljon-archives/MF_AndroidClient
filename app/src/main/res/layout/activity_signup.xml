@@ -6,7 +6,7 @@
     android:background="@drawable/bg_sign_screen"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".SignUpActivity">
+    tools:context=".ActivitySignUp">
 
     <RelativeLayout
         android:id="@+id/loadingPanel"

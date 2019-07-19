@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InterventionsActivity extends AppCompatActivity {
+public class ActivityInterventions extends AppCompatActivity {
 
     //region Variables
     static Intervention resultIntervention = null;
@@ -57,12 +57,14 @@ public class InterventionsActivity extends AppCompatActivity {
     private InputMethodManager imm;
     //endregion
 
+    // region Override
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_interventions);
         init();
     }
+    // endregion
 
     private void init() {
         intervChoice = findViewById(R.id.intervention_choice);
@@ -129,7 +131,7 @@ public class InterventionsActivity extends AppCompatActivity {
 
         String eventTitleStr = getIntent().getStringExtra("eventTitle");
         eventTitle.setText(getString(R.string.current_event_title, eventTitleStr.length() == 0 ? "[unnamed]" : eventTitleStr));
-        if (!EventActivity.event.isNewEvent())
+        if (!ActivityEvent.event.isNewEvent())
             fillOutExistingValues();
 
 
@@ -148,7 +150,6 @@ public class InterventionsActivity extends AppCompatActivity {
         //endregion
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void sortInterventions(Intervention[] interventions) {
         Tools.shuffle(interventions);
 
@@ -161,8 +162,10 @@ public class InterventionsActivity extends AppCompatActivity {
                 if (!intervLastPickedTime.containsKey(intervention.getDescription()))
                     intervLastPickedTime.put(intervention.getDescription(), Long.MIN_VALUE);
             for (int n = 1; n < interventions.length; n++)
+                //noinspection ConstantConditions
                 if (intervLastPickedTime.get(interventions[n].getDescription()) != Long.MIN_VALUE)
                     for (int m = n; m > 0; m--)
+                        //noinspection ConstantConditions
                         if (intervLastPickedTime.get(interventions[m].getDescription()) > intervLastPickedTime.get(interventions[m - 1].getDescription()))
                             Tools.swap(interventions, m, m - 1);
         } else if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_popularity_radio_button) {
@@ -170,8 +173,10 @@ public class InterventionsActivity extends AppCompatActivity {
             for (Intervention intervention : interventions)
                 intervSelections.put(intervention.getDescription(), intervention.getNumberOfSelections());
             for (int n = 1; n < interventions.length; n++)
+                //noinspection ConstantConditions
                 if (intervSelections.get(interventions[n].getDescription()) != 0)
                     for (int m = n; m > 0; m--)
+                        //noinspection ConstantConditions
                         if (intervSelections.get(interventions[m].getDescription()) > intervSelections.get(interventions[m - 1].getDescription()))
                             Tools.swap(interventions, m, m - 1);
         }
@@ -183,9 +188,9 @@ public class InterventionsActivity extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        intervTitleText.setText(EventActivity.event.getIntervention());
+        intervTitleText.setText(ActivityEvent.event.getIntervention());
 
-        switch (EventActivity.event.getInterventionReminder()) {
+        switch (ActivityEvent.event.getInterventionReminder()) {
             case 0:
                 intervReminderRadGroup.check(R.id.option_none);
                 break;
@@ -215,8 +220,8 @@ public class InterventionsActivity extends AppCompatActivity {
                 break;
             default:
                 intervReminderRadGroup.check(R.id.option_custom);
-                customReminderRadioButton.setTag(EventActivity.event.getInterventionReminder());
-                customReminderRadioButton.setText(Tools.notificationMinutesToString(this, EventActivity.event.getInterventionReminder()));
+                customReminderRadioButton.setTag(ActivityEvent.event.getInterventionReminder());
+                customReminderRadioButton.setText(Tools.notificationMinutesToString(this, ActivityEvent.event.getInterventionReminder()));
                 customReminderRadioButton.setVisibility(View.VISIBLE);
                 break;
         }
@@ -256,8 +261,8 @@ public class InterventionsActivity extends AppCompatActivity {
                 if (Tools.isNetworkAvailable()) {
                     Tools.execute(new MyRunnable(
                             this,
-                            SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                            SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                            ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                            ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                             getString(R.string.url_system_intervention_fetch, getString(R.string.server_ip))
                     ) {
                         @Override
@@ -286,7 +291,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                                         currentIntervsList.add(intervention.getDescription());
                                                         descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
-                                                    Tools.cacheSystemInterventions(InterventionsActivity.this, interventions);
+                                                    Tools.cacheSystemInterventions(ActivityInterventions.this, interventions);
                                                     Intervention.setSystemInterventionBank(interventions);
                                                     intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
@@ -318,7 +323,7 @@ public class InterventionsActivity extends AppCompatActivity {
                     });
                 } else {
                     try {
-                        Intervention[] interventions = Tools.readOfflineSystemInterventions(InterventionsActivity.this);
+                        Intervention[] interventions = Tools.readOfflineSystemInterventions(ActivityInterventions.this);
                         sortInterventions(interventions);
                         Intervention.setSystemInterventionBank(interventions);
                         if (interventions.length == 0)
@@ -348,8 +353,8 @@ public class InterventionsActivity extends AppCompatActivity {
                 if (Tools.isNetworkAvailable()) {
                     Tools.execute(new MyRunnable(
                             this,
-                            SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                            SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                            ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                            ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                             getString(R.string.url_peer_intervention_fetch, getString(R.string.server_ip))
                     ) {
                         @Override
@@ -382,7 +387,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                                         currentIntervsList.add(intervention.getDescription());
                                                         descr2IntervMap.put(intervention.getDescription(), intervention);
                                                     }
-                                                    Tools.cachePeerInterventions(InterventionsActivity.this, interventions);
+                                                    Tools.cachePeerInterventions(ActivityInterventions.this, interventions);
                                                     Intervention.setPeerInterventionBank(interventions);
                                                     intervListAdapter.notifyDataSetChanged();
                                                 } catch (JSONException e) {
@@ -407,7 +412,7 @@ public class InterventionsActivity extends AppCompatActivity {
                     });
                 } else {
                     try {
-                        Intervention[] interventions = Tools.readOfflinePeerInterventions(InterventionsActivity.this);
+                        Intervention[] interventions = Tools.readOfflinePeerInterventions(ActivityInterventions.this);
                         sortInterventions(interventions);
                         Intervention.setPeerInterventionBank(interventions);
                         if (interventions.length == 0)
@@ -444,15 +449,15 @@ public class InterventionsActivity extends AppCompatActivity {
             }
             resultIntervention = new Intervention(
                     intervTitleText.getText().toString(),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
                     Intervention.CREATION_METHOD_USER
             );
             if (Tools.isNetworkAvailable())
                 Tools.execute(new MyRunnable(
                         this,
                         getString(R.string.url_intervention_create, getString(R.string.server_ip)),
-                        SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                        SignInActivity.loginPrefs.getString(SignInActivity.password, null)
+                        ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                        ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)
                 ) {
                     @Override
                     public void run() {
@@ -473,7 +478,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             Intervention.addSelfInterventionToBank(resultIntervention);
-                                            Toast.makeText(InterventionsActivity.this, "Intervention successfully created!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(ActivityInterventions.this, "Intervention successfully created!", Toast.LENGTH_SHORT).show();
                                             setResult(Activity.RESULT_OK);
                                             finish();
                                             overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -484,7 +489,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                     runOnUiThread(new MyRunnable(activity) {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(InterventionsActivity.this, "Intervention already exists. Thus, it was picked for you.", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(ActivityInterventions.this, "Intervention already exists. Thus, it was picked for you.", Toast.LENGTH_SHORT).show();
                                             setResult(Activity.RESULT_OK);
                                             finish();
                                             overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -495,7 +500,7 @@ public class InterventionsActivity extends AppCompatActivity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(InterventionsActivity.this, "Failure in intervention creation. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(ActivityInterventions.this, "Failure in intervention creation. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                     break;
@@ -509,7 +514,7 @@ public class InterventionsActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(InterventionsActivity.this, "Failed to create the intervention.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivityInterventions.this, "Failed to create the intervention.", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -526,20 +531,20 @@ public class InterventionsActivity extends AppCompatActivity {
         }
     }
 
-    public void clickCustomIntervNotification(View view) {
+    public void clickCustomInterventionNotification(View view) {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         Fragment prev = getFragmentManager().findFragmentByTag("dialogCustomNotif");
         if (prev != null)
             ft.remove(prev);
         ft.addToBackStack(null);
-        DialogFragment dialogFragment = new CustomNotificationDialog();
+        DialogFragment dialogFragment = new DialogCustomNotification();
         Bundle args = new Bundle();
         args.putBoolean("isEventNotification", false);
         dialogFragment.setArguments(args);
         dialogFragment.show(ft, "dialogCustomNotif");
     }
 
-    public void setCustomNotifParams(int minutes) {
+    public void setCustomNotificationParams(int minutes) {
         resultReminderMinutes = minutes;
         customReminderRadioButton.setTag(String.valueOf(minutes));
         intervReminderRadGroup.check(R.id.option_custom);

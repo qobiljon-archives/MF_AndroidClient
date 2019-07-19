@@ -3,12 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="kr.ac.inha.nsl.mindforecaster">
 
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -24,7 +23,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:name=".SignInActivity"
+            android:name=".ActivitySignIn"
             android:theme="@style/InnerActivityTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,34 +32,34 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".ActivityMain"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SignUpActivity"
+            android:name=".ActivitySignUp"
             android:theme="@style/InnerActivityTheme" />
         <activity
-            android:name=".EventActivity"
+            android:name=".ActivityEvent"
             android:theme="@style/InnerActivityTheme" />
         <activity
-            android:name=".InterventionsActivity"
+            android:name=".ActivityInterventions"
             android:theme="@style/InnerActivityTheme" />
         <activity
-            android:name=".EvaluationActivity"
+            android:name=".ActivityEvaluation"
             android:theme="@style/InnerActivityTheme" />
         <activity
-            android:name=".SurveyActivity"
+            android:name=".ActivitySurvey"
             android:theme="@style/InnerActivityTheme" />
 
-        <receiver android:name=".AlaramReceiverEveryDay" />
-        <receiver android:name=".AlarmReceiverEverySunday" />
+        <receiver android:name=".AlarmReceiverDaily" />
+        <receiver android:name=".AlarmReceiverSundays" />
         <receiver android:name=".AlarmReceiverEvent" />
         <receiver android:name=".AlarmReceiverIntervention" />
 
         <service
-            android:name=".ActivityTransitionDetectionService"
+            android:name=".MF_ActivityRecognitionService"
             android:enabled="true" />
         <service
-            android:name=".DataCollectorService"
+            android:name=".MF_DataCollectorService"
             android:enabled="true" />
     </application>
 

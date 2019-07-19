@@ -12,7 +12,7 @@
     <item
         android:id="@+id/action_notifications_settings"
         android:icon="@drawable/img_notification"
-        android:onClick="notifSettingsClick"
+        android:onClick="notificationSettingsClick"
         android:title="@string/notifications_settings"
         app:showAsAction="ifRoom" />
 

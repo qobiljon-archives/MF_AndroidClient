@@ -11,13 +11,13 @@ import android.content.Intent;
 import androidx.core.app.NotificationCompat;
 
 public class AlarmReceiverEvent extends BroadcastReceiver {
-
+    // region Override
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent notificationIntent = new Intent(context, SignInActivity.class);
+        Intent notificationIntent = new Intent(context, ActivitySignIn.class);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(SignInActivity.class);
+        stackBuilder.addParentStack(ActivitySignIn.class);
         stackBuilder.addNextIntent(notificationIntent);
 
         int notificaiton_id = (int) intent.getLongExtra("EventId", 0);
@@ -39,4 +39,5 @@ public class AlarmReceiverEvent extends BroadcastReceiver {
             notificationManager.notify(notificaiton_id, notification);
         }
     }
+    // endregion
 }

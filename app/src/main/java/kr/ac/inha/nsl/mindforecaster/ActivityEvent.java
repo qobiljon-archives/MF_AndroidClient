@@ -41,12 +41,15 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class EventActivity extends AppCompatActivity {
+public class ActivityEvent extends AppCompatActivity {
+    // region Constants
+    private final int EVALUATION_ACTIVITY = 0;
+    private final int INTERVENTION_ACTIVITY = 1;
+    // endregion
 
-    //region Variables
+    // region Variables
     static Event event;
 
-    private final int EVALUATION_ACTIVITY = 0, INTERVENTION_ACTIVITY = 1;
     private ViewGroup inactiveLayout;
     private ViewGroup stressLevelDetails;
     private ViewGroup interventionDetails;
@@ -80,7 +83,9 @@ public class EventActivity extends AppCompatActivity {
     private TextView realStressReason;
     private TextView journalTxt;
     private boolean stressLevelPicked = false;
+    // endregion
 
+    // region Override
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,10 +98,10 @@ public class EventActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK)
             switch (requestCode) {
                 case INTERVENTION_ACTIVITY:
-                    event.setIntervention(InterventionsActivity.resultIntervention.getDescription());
-                    event.setInterventionReminder(InterventionsActivity.resultReminderMinutes);
+                    event.setIntervention(ActivityInterventions.resultIntervention.getDescription());
+                    event.setInterventionReminder(ActivityInterventions.resultReminderMinutes);
                     selectedInterv.setText(event.getIntervention());
-                    switch (InterventionsActivity.resultReminderMinutes) {
+                    switch (ActivityInterventions.resultReminderMinutes) {
                         case -1440:
                             intervReminderTxt.setText(getString(R.string.intervention_reminder_text, getString(R.string._1_day_before)));
                             break;
@@ -122,11 +127,11 @@ public class EventActivity extends AppCompatActivity {
                             intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, getString(R.string._10_minutes_after1)));
                             break;
                         default:
-                            if (InterventionsActivity.resultReminderMinutes > 0) {
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notificationMinutesToString(this, InterventionsActivity.resultReminderMinutes)));
+                            if (ActivityInterventions.resultReminderMinutes > 0) {
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text1, Tools.notificationMinutesToString(this, ActivityInterventions.resultReminderMinutes)));
 
                             } else
-                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notificationMinutesToString(this, InterventionsActivity.resultReminderMinutes)));
+                                intervReminderTxt.setText(getString(R.string.intervention_reminder_text, Tools.notificationMinutesToString(this, ActivityInterventions.resultReminderMinutes)));
                             break;
                     }
                     intervReminderTxt.setVisibility(View.VISIBLE);
@@ -372,7 +377,7 @@ public class EventActivity extends AppCompatActivity {
                     }
                 };
 
-                DatePickerDialog dialog = new DatePickerDialog(EventActivity.this, R.style.DialogTheme, listener, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+                DatePickerDialog dialog = new DatePickerDialog(ActivityEvent.this, R.style.DialogTheme, listener, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
                 dialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == DialogInterface.BUTTON_NEGATIVE) {
@@ -390,8 +395,8 @@ public class EventActivity extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        InterventionsActivity.resultIntervention = Intervention.getInterventionByDescription(event.getIntervention());
-        InterventionsActivity.resultReminderMinutes = event.getInterventionReminder();
+        ActivityInterventions.resultIntervention = Intervention.getInterventionByDescription(event.getIntervention());
+        ActivityInterventions.resultReminderMinutes = event.getInterventionReminder();
 
         eventTitle.setText(event.getTitle());
 
@@ -678,14 +683,14 @@ public class EventActivity extends AppCompatActivity {
     }
 
     public void editInterventionClick(View view) {
-        Intent intent = new Intent(this, InterventionsActivity.class);
+        Intent intent = new Intent(this, ActivityInterventions.class);
         intent.putExtra("eventTitle", eventTitle.getText().toString());
         startActivityForResult(intent, INTERVENTION_ACTIVITY);
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
 
     public void evaluationClick(View view) {
-        Intent intent = new Intent(this, EvaluationActivity.class);
+        Intent intent = new Intent(this, ActivityEvaluation.class);
         startActivityForResult(intent, EVALUATION_ACTIVITY);
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
@@ -704,10 +709,10 @@ public class EventActivity extends AppCompatActivity {
                     case DialogInterface.BUTTON_POSITIVE:
                         if (Tools.isNetworkAvailable())
                             Tools.execute(new MyRunnable(
-                                    EventActivity.this,
+                                    ActivityEvent.this,
                                     getString(R.string.url_event_delete, getString(R.string.server_ip)),
-                                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                                    SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                                     event.getEventId()
                             ) {
                                 @Override
@@ -730,7 +735,7 @@ public class EventActivity extends AppCompatActivity {
                                                     @Override
                                                     public void run() {
                                                         long eventId = (long) args[0];
-                                                        Tools.cancelNotif(EventActivity.this, (int) eventId);
+                                                        Tools.cancelNotification(ActivityEvent.this, (int) eventId);
                                                         setResult(Activity.RESULT_OK);
                                                         finish();
                                                         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -741,7 +746,7 @@ public class EventActivity extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        Toast.makeText(EventActivity.this, "Failed to create delete the event.", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ActivityEvent.this, "Failed to create delete the event.", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                                 break;
@@ -749,7 +754,7 @@ public class EventActivity extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        Toast.makeText(EventActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ActivityEvent.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                                 break;
@@ -762,7 +767,7 @@ public class EventActivity extends AppCompatActivity {
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                Toast.makeText(EventActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(ActivityEvent.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                                             }
                                         });
                                     }
@@ -770,15 +775,15 @@ public class EventActivity extends AppCompatActivity {
                                 }
                             });
                         else
-                            Toast.makeText(EventActivity.this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActivityEvent.this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
                         break;
                     case DialogInterface.BUTTON_NEUTRAL:
                         if (Tools.isNetworkAvailable())
                             Tools.execute(new MyRunnable(
-                                    EventActivity.this,
+                                    ActivityEvent.this,
                                     getString(R.string.url_event_delete, getString(R.string.server_ip)),
-                                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                                    SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                                     event.getRepeatId()
                             ) {
                                 @Override
@@ -809,9 +814,9 @@ public class EventActivity extends AppCompatActivity {
                                                     public void run() {
                                                         long[] deletedIds = (long[]) args[0];
 
-                                                        Toast.makeText(EventActivity.this, "Events have been deleted!", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ActivityEvent.this, "Events have been deleted!", Toast.LENGTH_SHORT).show();
                                                         for (long deletedId : deletedIds)
-                                                            Tools.cancelNotif(EventActivity.this, (int) deletedId);
+                                                            Tools.cancelNotification(ActivityEvent.this, (int) deletedId);
                                                         setResult(Activity.RESULT_OK);
                                                         finish();
                                                         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
@@ -822,7 +827,7 @@ public class EventActivity extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        Toast.makeText(EventActivity.this, "Failed to delete the recurring events.", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ActivityEvent.this, "Failed to delete the recurring events.", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                                 break;
@@ -830,7 +835,7 @@ public class EventActivity extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        Toast.makeText(EventActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ActivityEvent.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                                 break;
@@ -843,7 +848,7 @@ public class EventActivity extends AppCompatActivity {
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                Toast.makeText(EventActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(ActivityEvent.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                                             }
                                         });
                                     }
@@ -851,7 +856,7 @@ public class EventActivity extends AppCompatActivity {
                                 }
                             });
                         else
-                            Toast.makeText(EventActivity.this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActivityEvent.this, "Please connect to a network first!", Toast.LENGTH_SHORT).show();
                         break;
                     case DialogInterface.BUTTON_NEGATIVE:
                         break;
@@ -997,9 +1002,9 @@ public class EventActivity extends AppCompatActivity {
     private void createEvent() {
         Tools.execute(new MyRunnable(
                 this,
-                EventActivity.event.isNewEvent() ? getString(R.string.url_event_create, getString(R.string.server_ip)) : getString(R.string.url_event_edit, getString(R.string.server_ip)),
-                SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                SignInActivity.loginPrefs.getString(SignInActivity.password, null)
+                ActivityEvent.event.isNewEvent() ? getString(R.string.url_event_create, getString(R.string.server_ip)) : getString(R.string.url_event_edit, getString(R.string.server_ip)),
+                ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)
         ) {
             @Override
             public void run() {
@@ -1047,7 +1052,7 @@ public class EventActivity extends AppCompatActivity {
                                     Intervention intervention = Intervention.getInterventionByDescription(event.getIntervention());
                                     if (intervention != null)
                                         intervention.increaseNumberOfSelections();
-                                    Toast.makeText(EventActivity.this, EventActivity.event.isNewEvent() ? "Event successfully created!" : "Event has been edited.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivityEvent.this, ActivityEvent.event.isNewEvent() ? "Event successfully created!" : "Event has been edited.", Toast.LENGTH_SHORT).show();
 
                                     setResult(Activity.RESULT_OK);
                                     finish();
@@ -1059,7 +1064,7 @@ public class EventActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(EventActivity.this, EventActivity.event.isNewEvent() ? "Failed to create the event." : "Failed to edit the event.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivityEvent.this, ActivityEvent.event.isNewEvent() ? "Failed to create the event." : "Failed to edit the event.", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             break;
@@ -1067,7 +1072,7 @@ public class EventActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(EventActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ActivityEvent.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             break;
@@ -1080,7 +1085,7 @@ public class EventActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(EventActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActivityEvent.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -1219,7 +1224,7 @@ public class EventActivity extends AppCompatActivity {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        DialogFragment dialogFragment = new CustomNotificationDialog();
+        DialogFragment dialogFragment = new DialogCustomNotification();
         Bundle args = new Bundle();
         args.putBoolean("isEventNotification", true);
         dialogFragment.setArguments(args);
@@ -1269,7 +1274,7 @@ public class EventActivity extends AppCompatActivity {
         journalTxt = findViewById(R.id.journal_text);
 
         // set expected stress level from event variable
-        int stressLevel = EventActivity.event.getStressLevel();
+        int stressLevel = ActivityEvent.event.getStressLevel();
         if (stressLevel == -1) {
             LinearLayout expected_stress_level_labels = result_details_layout.findViewById(R.id.expected_stress_level_labels);
             expected_stress_level_labels.setVisibility(View.GONE);
@@ -1279,8 +1284,8 @@ public class EventActivity extends AppCompatActivity {
             expected_stress_level_not_availble_label.setVisibility(View.VISIBLE);
         } else {
             expectedStressLevelSeek.setEnabled(false);
-            expectedStressLevelSeek.setProgress(EventActivity.event.getStressLevel());
-            int expectedStressColor = Tools.stressLevelToColor(getApplicationContext(), EventActivity.event.getStressLevel());
+            expectedStressLevelSeek.setProgress(ActivityEvent.event.getStressLevel());
+            int expectedStressColor = Tools.stressLevelToColor(getApplicationContext(), ActivityEvent.event.getStressLevel());
             expectedStressLevelSeek.getProgressDrawable().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
             expectedStressLevelSeek.getThumb().setColorFilter(expectedStressColor, PorterDuff.Mode.SRC_IN);
         }
@@ -1299,8 +1304,8 @@ public class EventActivity extends AppCompatActivity {
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_evaluation_fetch, getString(R.string.server_ip)),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                    SignInActivity.loginPrefs.getString(SignInActivity.password, null)
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)
             ) {
                 @Override
                 public void run() {
@@ -1361,7 +1366,7 @@ public class EventActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(EventActivity.this, "Failed to fetch evaluation for this event.", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityEvent.this, "Failed to fetch evaluation for this event.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -1369,7 +1374,7 @@ public class EventActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(EventActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityEvent.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -1382,7 +1387,7 @@ public class EventActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(EventActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ActivityEvent.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

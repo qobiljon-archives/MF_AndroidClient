@@ -15,7 +15,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -24,7 +23,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
@@ -54,7 +52,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -71,7 +68,6 @@ import static java.lang.System.currentTimeMillis;
 public class Tools {
 
     // region Constants
-    static final long LAST_REBOOT_TIMESTAMP = currentTimeMillis() - SystemClock.elapsedRealtime();
     static final short RES_OK = 0;
     static final short RES_SRV_ERR = -1;
     static final short RES_FAIL = 1;
@@ -97,9 +93,7 @@ public class Tools {
     private static String locationDataSubmitUrl;
     private static String activityRecognitionSubmitUrl;
 
-    static boolean init(final Activity activity) {
-        boolean allPermissionsProvided = true;
-
+    static void init(final Activity activity) {
         // set up internet connectivity checker
         PACKAGE_NAME = activity.getPackageName();
 
@@ -109,27 +103,11 @@ public class Tools {
         usageStatsSubmitUrl = activity.getString(R.string.url_usage_stats_submit, activity.getString(R.string.server_ip));
         locationDataSubmitUrl = activity.getString(R.string.url_location_data_submit, activity.getString(R.string.server_ip));
         activityRecognitionSubmitUrl = activity.getString(R.string.url_activity_recognition_submit, activity.getString(R.string.server_ip));
-
-        // check for permissions needed for data collection
-        // check app-usage permissions
-        if (!usageAccessIsGranted(activity)) {
-            Toast.makeText(activity, "Please provide usage access to this app in settings!", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-            activity.startActivity(intent);
-            allPermissionsProvided = false;
-        }
-        // check GPS location permissions (Google Play services => Last Known Location + Activity Recognition API)
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            allPermissionsProvided = false;
-        }
-
-        return allPermissionsProvided;
     }
 
     static void initDataCollectorService(final Activity activity) {
-        if (!DataCollectorService.isServiceRunning)
-            activity.startService(new Intent(activity, DataCollectorService.class));
+        activity.stopService(new Intent(activity, MF_DataCollectorService.class));
+        activity.startService(new Intent(activity, MF_DataCollectorService.class));
     }
     // endregion
 
@@ -153,7 +131,7 @@ public class Tools {
         if (usageStatsManager == null)
             return;
 
-        long lastSavedTimestamp = SignInActivity.loginPrefs.getLong("lastUsageSubmissionTime", -1);
+        long lastSavedTimestamp = ActivitySignIn.loginPrefs.getLong("lastUsageSubmissionTime", -1);
 
         Calendar fromCal = Calendar.getInstance(Locale.getDefault());
         if (lastSavedTimestamp == -1)
@@ -186,14 +164,14 @@ public class Tools {
             @SuppressWarnings("deprecation")
             HttpClient httpclient = new DefaultHttpClient();
             ArrayList<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
-            params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+            params.add(new BasicNameValuePair("username", ActivitySignIn.loginPrefs.getString("username", null)));
+            params.add(new BasicNameValuePair("password", ActivitySignIn.loginPrefs.getString("password", null)));
             params.add(new BasicNameValuePair("app_usage", sb.toString()));
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             HttpResponse response = httpclient.execute(httppost);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                SharedPreferences.Editor editor = SignInActivity.loginPrefs.edit();
+                SharedPreferences.Editor editor = ActivitySignIn.loginPrefs.edit();
                 editor.putLong("lastUsageSubmissionTime", tillCal.getTimeInMillis());
                 editor.apply();
             }
@@ -216,8 +194,8 @@ public class Tools {
         @SuppressWarnings("deprecation")
         HttpClient httpclient = new DefaultHttpClient();
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
-        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+        params.add(new BasicNameValuePair("username", ActivitySignIn.loginPrefs.getString("username", null)));
+        params.add(new BasicNameValuePair("password", ActivitySignIn.loginPrefs.getString("password", null)));
         params.add(new BasicNameValuePair("data", locationData));
         httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
         HttpResponse response = httpclient.execute(httppost);
@@ -244,8 +222,8 @@ public class Tools {
         @SuppressWarnings("deprecation")
         HttpClient httpclient = new DefaultHttpClient();
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString("username", null)));
-        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString("password", null)));
+        params.add(new BasicNameValuePair("username", ActivitySignIn.loginPrefs.getString("username", null)));
+        params.add(new BasicNameValuePair("password", ActivitySignIn.loginPrefs.getString("password", null)));
         params.add(new BasicNameValuePair("data", activityRecognitionData));
         httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
         HttpResponse response = httpclient.execute(httppost);
@@ -259,13 +237,12 @@ public class Tools {
 
     static void execute(Runnable runnable) {
         if (runnable instanceof MyRunnable)
-            disable_touch(((MyRunnable) runnable).activity);
+            disableTouch(((MyRunnable) runnable).activity);
         executor.execute(runnable);
     }
 
 
-    @SuppressWarnings("unused")
-    private static boolean isLocationEnabled(Context context) {
+    static boolean isGPSDeviceEnabled(Context context) {
         try {
             return Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE) != Settings.Secure.LOCATION_MODE_OFF;
         } catch (Settings.SettingNotFoundException e) {
@@ -274,16 +251,20 @@ public class Tools {
         }
     }
 
-    private static boolean usageAccessIsGranted(Context context) {
+    static boolean isUsageAccessDenied(Context context) {
         try {
             PackageManager packageManager = context.getPackageManager();
             ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
             AppOpsManager appOpsManager = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
             int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid, applicationInfo.packageName);
-            return (mode == AppOpsManager.MODE_ALLOWED);
+            return (mode != AppOpsManager.MODE_ALLOWED);
         } catch (PackageManager.NameNotFoundException e) {
-            return false;
+            return true;
         }
+    }
+
+    static boolean isLocationPermissionDenied(Context context) {
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
     }
 
     static boolean isNetworkAvailable() {
@@ -319,14 +300,14 @@ public class Tools {
         return result.toString();
     }
 
-    static synchronized void storeActivityRecognitionData(long timestamp, String activity, String transition) throws IOException {
+    static synchronized void storeActivityRecognitionData(long timestamp, String activity, float confidence) throws IOException {
         FileWriter writer = new FileWriter(activityRecognitionDataFile, true);
         writer.write(String.format(
                 Locale.getDefault(),
-                "%d %s %s\n",
+                "%d %s %f\n",
                 timestamp / 1000,
                 activity,
-                transition
+                confidence
         ));
         writer.close();
     }
@@ -381,16 +362,6 @@ public class Tools {
         return sb.toString();
     }
 
-    @SuppressWarnings("unused")
-    private static String convertFromUTF8(byte[] raw) {
-        return new String(raw, StandardCharsets.UTF_8);
-    }
-
-    @SuppressWarnings("unused")
-    private static String convertToUTF8(String s) {
-        return new String(s.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-    }
-
     @ColorInt
     static int stressLevelToColor(Context context, int level) {
         switch (level) {
@@ -407,14 +378,6 @@ public class Tools {
             default:
                 return 0;
         }
-       /* float c = 5.11f;
-
-        if (level > 98)
-            return Color.RED;
-        else if (level < 50)
-            return Color.argb(0xff, (int) (level * c), 0xff, 0);
-        else
-            return Color.argb(0xff, 0xff, (int) (c * (100 - level)), 0);*/
     }
 
 
@@ -470,28 +433,6 @@ public class Tools {
         Tools.writeToFile(context, String.format(Locale.getDefault(), "events_%02d_%d.json", month, year), array.toString());
     }
 
-    static Event[] readOfflineMonthlyEvents(Context context, int month, int year) {
-        JSONArray array;
-        try {
-            array = new JSONArray(readFromFile(context, String.format(Locale.getDefault(), "events_%02d_%d.json", month, year)));
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        try {
-            Event[] res = new Event[array.length()];
-            for (int n = 0; n < array.length(); n++) {
-                res[n] = new Event(1);
-                res[n].fromJson(array.getJSONObject(n));
-            }
-            return res;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     private static void cacheInterventions(Context context, Intervention[] interventions, String type) throws JSONException {
         if (interventions == null || interventions.length == 0)
             return;
@@ -519,6 +460,28 @@ public class Tools {
         cacheInterventions(context, peerInterventions, "peer");
     }
 
+    static Event[] readOfflineMonthlyEvents(Context context, int month, int year) {
+        JSONArray array;
+        try {
+            array = new JSONArray(readFromFile(context, String.format(Locale.getDefault(), "events_%02d_%d.json", month, year)));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        try {
+            Event[] res = new Event[array.length()];
+            for (int n = 0; n < array.length(); n++) {
+                res[n] = new Event(1);
+                res[n].fromJson(array.getJSONObject(n));
+            }
+            return res;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private static Intervention[] readOfflineInterventions(Context context, String type) throws JSONException {
         JSONArray array = new JSONArray(readFromFile(context, String.format(Locale.getDefault(), "%s_interventions.json", type)));
 
@@ -528,7 +491,7 @@ public class Tools {
         return res;
     }
 
-    static JSONArray[] loadOfflineSurvey(Context context) {
+    static JSONArray[] loadOfflineSurveys(Context context) {
         try {
             JSONObject obj = new JSONObject(readFromFile(context, "survey.json"));
             return new JSONArray[]{
@@ -551,9 +514,9 @@ public class Tools {
     }
 
 
-    static void addDailyNotif(Context context, Calendar when, String text, boolean isEvaluate) {
+    static void addDailyNotification(Context context, Calendar when, String text, boolean isEvaluate) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlaramReceiverEveryDay.class);
+        Intent intent = new Intent(context, AlarmReceiverDaily.class);
         intent.putExtra("Content", text);
         intent.putExtra("notification_id", when.getTimeInMillis());
         intent.putExtra("isEvaluated", isEvaluate);
@@ -563,9 +526,9 @@ public class Tools {
         dailyNotifs.put((int) when.getTimeInMillis(), pendingIntent);
     }
 
-    static void addSundayNotif(Context context, Calendar when) {
+    static void addSundayNotification(Context context, Calendar when) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlarmReceiverEverySunday.class);
+        Intent intent = new Intent(context, AlarmReceiverSundays.class);
         intent.putExtra("Content", context.getString(R.string.sunday_notif_question));
         intent.putExtra("notification_id", when.getTimeInMillis());
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int) when.getTimeInMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -574,7 +537,7 @@ public class Tools {
         sundayNotifs.put((int) when.getTimeInMillis(), pendingIntent);
     }
 
-    static void addEventNotif(Context context, Calendar when, long event_id, String text) {
+    static void addEventNotification(Context context, Calendar when, long event_id, String text) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverEvent.class);
         intent.putExtra("Content", text);
@@ -597,7 +560,7 @@ public class Tools {
         intervNotifs.put((int) event_id, pendingIntent);
     }
 
-    static void cancelNotif(Context context, int notif_id) {
+    static void cancelNotification(Context context, int notif_id) {
         SparseArray<PendingIntent> map;
         if (dailyNotifs.get(notif_id, null) != null)
             map = dailyNotifs;
@@ -621,11 +584,11 @@ public class Tools {
     }
 
 
-    private static void disable_touch(Activity activity) {
+    private static void disableTouch(Activity activity) {
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
-    static void enable_touch(Activity activity) {
+    static void enableTouch(Activity activity) {
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
@@ -688,7 +651,7 @@ abstract class MyRunnable implements Runnable {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Tools.enable_touch(activity);
+                Tools.enableTouch(activity);
             }
         });
     }
@@ -781,7 +744,7 @@ class Event {
                 cal = event.getStartTime();
                 cal.add(Calendar.MINUTE, event.getEventReminder());
                 if (cal.before(today))
-                    Tools.cancelNotif(context, (int) event.getEventId());
+                    Tools.cancelNotification(context, (int) event.getEventId());
                 else {
                     String reminderStr = Tools.notificationMinutesToString(context, event.getEventReminder());
                     reminderStr = reminderStr.substring(0, reminderStr.lastIndexOf(' '));
@@ -789,7 +752,7 @@ class Event {
                         reminderStr = context.getString(R.string.tomorrow);
                     else
                         reminderStr = String.format(context.getString(R.string.notification_event_time), context.getString(R.string.after), reminderStr);
-                    Tools.addEventNotif(context, cal, event.getEventId(), String.format(context.getResources().getString(R.string.notification_event), event.getTitle(), reminderStr));
+                    Tools.addEventNotification(context, cal, event.getEventId(), String.format(context.getResources().getString(R.string.notification_event), event.getTitle(), reminderStr));
                 }
             }
         }
@@ -806,7 +769,7 @@ class Event {
                 calIntervBeforeEvent = event.getStartTime();
                 calIntervBeforeEvent.add(Calendar.MINUTE, event.getInterventionReminder());
                 if (calIntervBeforeEvent.before(today)) {
-                    Tools.cancelNotif(context, (int) calIntervNotifId.getTimeInMillis());
+                    Tools.cancelNotification(context, (int) calIntervNotifId.getTimeInMillis());
                 } else
                     Tools.addInterventionNotification(
                             context,
@@ -829,7 +792,7 @@ class Event {
                 calIntervAfterEvent = event.getEndTime();
                 calIntervAfterEvent.add(Calendar.MINUTE, event.getInterventionReminder());
                 if (calIntervAfterEvent.before(today)) {
-                    Tools.cancelNotif(context, (int) calIntervNotifId.getTimeInMillis());
+                    Tools.cancelNotification(context, (int) calIntervNotifId.getTimeInMillis());
                 } else
                     Tools.addInterventionNotification(
                             context,
@@ -1042,7 +1005,6 @@ class Event {
     }
 }
 
-@SuppressWarnings({"WeakerAccess", "unused"})
 class Intervention {
     // static final short CREATION_METHOD_SYSTEM = 0;
     static final short CREATION_METHOD_USER = 1;
@@ -1058,7 +1020,7 @@ class Intervention {
     private short numberOfLikes;
     private short numberOfDislikes;
 
-    Intervention(String description, @Nullable String creator, int creationMethod, boolean isPublic, int numberOfSelections, int numberOfLikes, int numberOfDislikes) {
+    private Intervention(String description, @Nullable String creator, int creationMethod, boolean isPublic, int numberOfSelections, int numberOfLikes, int numberOfDislikes) {
         this.description = description;
         this.creator = creator;
         this.creationMethod = (short) creationMethod;
@@ -1126,11 +1088,11 @@ class Intervention {
         return description;
     }
 
-    String getCreator() {
+    private String getCreator() {
         return creator;
     }
 
-    short getCreationMethod() {
+    private short getCreationMethod() {
         return creationMethod;
     }
 
@@ -1146,20 +1108,12 @@ class Intervention {
         this.numberOfSelections++;
     }
 
-    short getNumberOfLikes() {
+    private short getNumberOfLikes() {
         return numberOfLikes;
     }
 
-    void increaseNumberOfLikes() {
-        this.numberOfLikes++;
-    }
-
-    short getNumberOfDislikes() {
+    private short getNumberOfDislikes() {
         return numberOfDislikes;
-    }
-
-    void increaseNumberOfDislikes() {
-        this.numberOfDislikes++;
     }
 
     JSONObject to_json() throws JSONException {

@@ -10,21 +10,14 @@ import android.content.Intent;
 
 import androidx.core.app.NotificationCompat;
 
-import java.util.Calendar;
-import java.util.Locale;
-
-public class AlaramReceiverEveryDay extends BroadcastReceiver {
-
+public class AlarmReceiverSundays extends BroadcastReceiver {
+    // region Override
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent notificationIntent = new Intent(context, SignInActivity.class);
-        Calendar cal = Calendar.getInstance(Locale.getDefault());
-        notificationIntent.putExtra("eventDate", cal.getTimeInMillis());
-        notificationIntent.putExtra("event", "hi");
-        notificationIntent.putExtra("isEvaluated", intent.getBooleanExtra("isEvaluate", false));
+        Intent notificationIntent = new Intent(context, ActivitySignIn.class);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(SignInActivity.class);
+        stackBuilder.addParentStack(ActivitySignIn.class);
         stackBuilder.addNextIntent(notificationIntent);
 
         int notificaiton_id = (int) intent.getLongExtra("notification_id", 0);
@@ -42,7 +35,9 @@ public class AlaramReceiverEveryDay extends BroadcastReceiver {
                 .setContentIntent(pendingIntent).build();
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null)
+        if (notificationManager != null) {
             notificationManager.notify(notificaiton_id, notification);
+        }
     }
+    // endregion
 }

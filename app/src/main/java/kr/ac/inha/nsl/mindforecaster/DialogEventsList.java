@@ -13,22 +13,25 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class EventsListDialog extends DialogFragment {
+public class DialogEventsList extends DialogFragment {
 
-    private ViewGroup root;
-    private View.OnClickListener onEventClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            Intent intent = new Intent(getActivity(), EventActivity.class);
-            intent.putExtra("eventId", (long) view.getTag());
-            startActivityForResult(intent, MainActivity.EVENT_ACTIVITY);
-        }
-    };
-
-    public EventsListDialog() {
-
+    public DialogEventsList() {
+        onEventClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), ActivityEvent.class);
+                intent.putExtra("eventId", (long) view.getTag());
+                startActivityForResult(intent, ActivityMain.EVENT_ACTIVITY);
+            }
+        };
     }
 
+    // region Variables
+    private ViewGroup root;
+    private View.OnClickListener onEventClickListener;
+    // endregion
+
+    // region Override
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = (ViewGroup) inflater.inflate(R.layout.dialog_daily_eventlist, container, true);
@@ -38,17 +41,18 @@ public class EventsListDialog extends DialogFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (getActivity() instanceof MainActivity)
-            ((MainActivity) getActivity()).updateCalendarView();
+        if (getActivity() instanceof ActivityMain)
+            ((ActivityMain) getActivity()).updateCalendarView();
         dismiss();
         super.onActivityResult(requestCode, resultCode, data);
     }
+    // endregion
 
     private void init() {
         root.findViewById(R.id.btn_add_from_dialog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), EventActivity.class);
+                Intent intent = new Intent(getActivity(), ActivityEvent.class);
                 intent.putExtra("selectedDayMillis", getArguments().getLong("selectedDayMillis"));
                 startActivityForResult(intent, 0);
                 getActivity().overridePendingTransition(R.anim.activity_in, R.anim.activity_out);

@@ -35,27 +35,23 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class ActivityMain extends AppCompatActivity {
+
+    // region Constants
+    static final int EVENT_ACTIVITY = 0;
+    static final int SURVEY_ACTIVITY = 0;
+    // endregion
 
     // region Variables
-    final static int EVENT_ACTIVITY = 0;
-    static final int SURVEY_ACTIVITY = 0;
-    
-    // region CellClick Listener
-    private LinearLayout.OnClickListener cellClick = new LinearLayout.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            showTodayEvents((long) view.getTag());
-        }
-    };
+    private LinearLayout.OnClickListener cellClick;
     private GridLayout event_grid;
     private ViewGroup[][] cells = new ViewGroup[7][5];
     private TextView monthNameTextView;
     private TextView yearValueTextView;
     private Calendar currentCal;
     // endregion
-    // endregion
 
+    // region Override
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +75,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        if (!Tools.isGPSDeviceEnabled(this))
+            Toast.makeText(this, "Your GPS is turned off, please consider turning it on!", Toast.LENGTH_SHORT).show();
+        super.onResume();
+    }
+
+    @Override
     protected void onStop() {
         try {
             Tools.cacheSystemInterventions(this, Intervention.systemInterventionBank);
@@ -93,22 +96,15 @@ public class MainActivity extends AppCompatActivity {
 
         super.onStop();
     }
-
-    private void showTodayEvents(long dateTimeMillis) {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-        if (prev != null) {
-            ft.remove(prev);
-        }
-        ft.addToBackStack(null);
-        DialogFragment dialogFragment = new EventsListDialog();
-        Bundle args = new Bundle();
-        args.putLong("selectedDayMillis", dateTimeMillis);
-        dialogFragment.setArguments(args);
-        dialogFragment.show(ft, "dialog");
-    }
+    // endregion
 
     private void init() {
+        cellClick = new LinearLayout.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showTodayEvents((long) view.getTag());
+            }
+        };
         currentCal = Calendar.getInstance(Locale.getDefault());
         currentCal.set(currentCal.get(Calendar.YEAR), currentCal.get(Calendar.MONTH), currentCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
         event_grid = findViewById(R.id.event_grid);
@@ -125,6 +121,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
         updateInterventions();
+    }
+
+    private void showTodayEvents(long dateTimeMillis) {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DialogFragment dialogFragment = new DialogEventsList();
+        Bundle args = new Bundle();
+        args.putLong("selectedDayMillis", dateTimeMillis);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(ft, "dialog");
     }
 
     public void updateCalendarView() {
@@ -215,8 +225,8 @@ public class MainActivity extends AppCompatActivity {
             Tools.execute(new MyRunnable(
                     this,
                     getString(R.string.url_events_fetch, getString(R.string.server_ip)),
-                    SignInActivity.loginPrefs.getString(SignInActivity.username, null),
-                    SignInActivity.loginPrefs.getString(SignInActivity.password, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null),
+                    ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null),
                     periodFrom.getTimeInMillis() / 1000,
                     periodTill.getTimeInMillis() / 1000,
                     currentCal.get(Calendar.MONTH),
@@ -251,9 +261,9 @@ public class MainActivity extends AppCompatActivity {
                                     events[n].fromJson(event);
                                 }
                                 Event.setCurrentEventBank(events);
-                                Event.updateEventReminders(MainActivity.this);
-                                Event.updateInterventionReminders(MainActivity.this);
-                                Tools.cacheMonthlyEvents(MainActivity.this, events, month, year);
+                                Event.updateEventReminders(ActivityMain.this);
+                                Event.updateInterventionReminders(ActivityMain.this);
+                                Tools.cacheMonthlyEvents(ActivityMain.this, events, month, year);
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -286,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(MainActivity.this, "Failed to load the events for this month.", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityMain.this, "Failed to load the events for this month.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -294,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(MainActivity.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(ActivityMain.this, "Failure occurred while processing the request. (SERVER SIDE)", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                                 break;
@@ -307,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(MainActivity.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ActivityMain.this, "Failed to proceed due to an error in connection with server.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -316,8 +326,8 @@ public class MainActivity extends AppCompatActivity {
             });
         else {
             Event.setCurrentEventBank(Tools.readOfflineMonthlyEvents(this, currentCal.get(Calendar.MONTH), currentCal.get(Calendar.YEAR)));
-            Event.updateEventReminders(MainActivity.this);
-            Event.updateInterventionReminders(MainActivity.this);
+            Event.updateEventReminders(ActivityMain.this);
+            Event.updateInterventionReminders(ActivityMain.this);
             for (row = 0; row < event_grid.getRowCount(); row++)
                 for (col = 0; col < event_grid.getColumnCount(); col++) {
                     Calendar day = Calendar.getInstance(Locale.getDefault());
@@ -346,8 +356,8 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         ArrayList<NameValuePair> params = new ArrayList<>();
-                        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString(SignInActivity.username, null)));
-                        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString(SignInActivity.password, null)));
+                        params.add(new BasicNameValuePair("username", ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null)));
+                        params.add(new BasicNameValuePair("password", ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)));
                         JSONObject res = new JSONObject(Tools.post(getString(R.string.url_system_intervention_fetch, getString(R.string.server_ip)), params));
                         if (res.getInt("result") == Tools.RES_OK)
                             runOnUiThread(new MyRunnable(activity, res.getJSONArray("interventions")) {
@@ -360,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
                                             Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
                                             interventions[n] = intervention;
                                         }
-                                        Tools.cacheSystemInterventions(MainActivity.this, interventions);
+                                        Tools.cacheSystemInterventions(ActivityMain.this, interventions);
                                         Intervention.setSystemInterventionBank(interventions);
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -378,8 +388,8 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         List<NameValuePair> params = new ArrayList<>();
-                        params.add(new BasicNameValuePair("username", SignInActivity.loginPrefs.getString(SignInActivity.username, null)));
-                        params.add(new BasicNameValuePair("password", SignInActivity.loginPrefs.getString(SignInActivity.password, null)));
+                        params.add(new BasicNameValuePair("username", ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_USERNAME, null)));
+                        params.add(new BasicNameValuePair("password", ActivitySignIn.loginPrefs.getString(ActivitySignIn.KEY_PASSWORD, null)));
                         JSONObject res = new JSONObject(Tools.post(getString(R.string.url_peer_intervention_fetch, getString(R.string.server_ip)), params));
                         if (res.getInt("result") == Tools.RES_OK)
                             runOnUiThread(new MyRunnable(activity, res.getJSONArray("interventions")) {
@@ -392,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
                                             Intervention intervention = Intervention.from_json(new JSONObject(arr.getString(n)));
                                             interventions[n] = intervention;
                                         }
-                                        Tools.cachePeerInterventions(MainActivity.this, interventions);
+                                        Tools.cachePeerInterventions(ActivityMain.this, interventions);
                                         Intervention.setPeerInterventionBank(interventions);
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -406,10 +416,10 @@ public class MainActivity extends AppCompatActivity {
             });
         } else {
             try {
-                Intervention[] systemInterventions = Tools.readOfflineSystemInterventions(MainActivity.this);
+                Intervention[] systemInterventions = Tools.readOfflineSystemInterventions(ActivityMain.this);
                 Intervention.setSystemInterventionBank(systemInterventions);
 
-                Intervention[] peerInterventions = Tools.readOfflinePeerInterventions(MainActivity.this);
+                Intervention[] peerInterventions = Tools.readOfflinePeerInterventions(ActivityMain.this);
                 Intervention.setPeerInterventionBank(peerInterventions);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -447,24 +457,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void logoutClick(MenuItem item) {
-        SharedPreferences.Editor editor = SignInActivity.loginPrefs.edit();
+        SharedPreferences.Editor editor = ActivitySignIn.loginPrefs.edit();
         editor.clear();
         editor.apply();
-        Intent intent = new Intent(MainActivity.this, SignInActivity.class);
+        Intent intent = new Intent(ActivityMain.this, ActivitySignIn.class);
         startActivity(intent);
-        stopService(new Intent(getApplicationContext(), DataCollectorService.class));
+        stopService(new Intent(getApplicationContext(), MF_DataCollectorService.class));
         finish();
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
 
-    public void notifSettingsClick(MenuItem item) {
+    public void notificationSettingsClick(MenuItem item) {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         Fragment prev = getFragmentManager().findFragmentByTag("dialogSettings");
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        DialogFragment dialogFragment = new NotifSettingsDialog();
+        DialogFragment dialogFragment = new DialogNotificationSettings();
         dialogFragment.show(ft, "dialog");
     }
 
@@ -475,14 +485,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onNewEventClick(View view) {
-        Intent intent = new Intent(this, EventActivity.class);
+        Intent intent = new Intent(this, ActivityEvent.class);
         intent.putExtra("selectedDayMillis", Calendar.getInstance(Locale.getDefault()).getTimeInMillis());
         startActivityForResult(intent, 0);
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
 
     public void surveyClick(MenuItem item) {
-        Intent intent = new Intent(this, SurveyActivity.class);
+        Intent intent = new Intent(this, ActivitySurvey.class);
         startActivityForResult(intent, SURVEY_ACTIVITY);
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
