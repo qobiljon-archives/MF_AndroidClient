@@ -1,7 +1,7 @@
 <resources>
     <!-- REST API Server URLs -->
-    <string name="server_ip" translatable="false">kwangyoung.pythonanywhere.com</string>
-    <!--<string name="server_ip" translatable="false">165.246.43.162:8000</string>-->
+    <!--<string name="server_ip" translatable="false">kwangyoung.pythonanywhere.com</string>-->
+    <string name="server_ip" translatable="false">165.246.43.162:8000</string>
     <string name="url_register" translatable="false">http://%1$s/register/</string>
     <string name="url_login" translatable="false">http://%1$s/login/</string>
 
@@ -53,7 +53,7 @@
     <string name="not_at_all">Not at all</string>
     <string name="extreme">Extreme</string>
     <string name="normal">Normal</string>
-    <string name="btn_close">Close</string>
+    <string name="confirm">confirm</string>
     <string name="more">More</string>
     <string name="intervention_method">Intervention method</string>
     <string name="self">self</string>
@@ -255,5 +255,10 @@
         <item>before</item>
         <item>after</item>
     </string-array>
+
+
+    <string name="intervention_reminder_title" translatable="false">Reminder on: "%1$s"</string>
+    <string name="intervention_reminder_description" translatable="false">Do \'%1$s\' %2$d minutes %3$s the event \'%4$s\'</string>
+    <string name="intervention_reminder_event_period" translatable="false">Event %1$s at %2$s</string>
 
 </resources>

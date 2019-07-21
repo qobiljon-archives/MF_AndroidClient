@@ -69,8 +69,5 @@
             android:textAlignment="viewEnd"
             android:textColor="@color/black"
             android:textSize="12sp" />
-
-
     </LinearLayout>
-
 </LinearLayout>

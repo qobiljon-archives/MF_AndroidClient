@@ -55,13 +55,13 @@ public class ActivityEvaluation extends AppCompatActivity {
         ViewGroup interventionLayout = findViewById(R.id.intervention_layout);
         final ViewGroup stressIncrDetails = findViewById(R.id.stress_incr_details_view);
         final ViewGroup stressDecrDetails = findViewById(R.id.stress_decr_details_view);
-        TextView eventTitle = findViewById(R.id.event_title_text_view);
+        TextView eventTitle = findViewById(R.id.text_event_title);
         eventTitle.setText(getString(R.string.current_event_title, ActivityEvent.event.getTitle()));
         TextView intervTitle = findViewById(R.id.intervention_title_text);
-        intervTitle.setText(getString(R.string.current_interv_title, ActivityEvent.event.getIntervention()));
+        intervTitle.setText(getString(R.string.current_interv_title, ActivityEvent.event.getInterventionDescription()));
 
 
-        if (ActivityEvent.event.getIntervention() == null)
+        if (ActivityEvent.event.getInterventionDescription() == null)
             interventionLayout.setVisibility(View.GONE);
 
         int stressLevel = ActivityEvent.event.getStressLevel();
@@ -137,7 +137,7 @@ public class ActivityEvaluation extends AppCompatActivity {
                         params.add(new BasicNameValuePair("username", username));
                         params.add(new BasicNameValuePair("password", password));
                         params.add(new BasicNameValuePair("eventId", String.valueOf(ActivityEvent.event.getEventId())));
-                        params.add(new BasicNameValuePair("interventionName", ActivityEvent.event.getIntervention()));
+                        params.add(new BasicNameValuePair("interventionName", ActivityEvent.event.getInterventionDescription()));
                         params.add(new BasicNameValuePair("realStressLevel", String.valueOf(realStressLevel.getProgress())));
                         params.add(new BasicNameValuePair("realStressCause", realStressReason.getText().toString()));
                         params.add(new BasicNameValuePair("journal", journalText.getText().toString()));

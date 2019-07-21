@@ -35,6 +35,7 @@
     <color name="interv_method_checked">#ED7D31</color>
 
     <!-- stress levels colors by levels -->
+    <color name="default_intervention_color">#888</color>
     <color name="slvl0_color">#38B549</color>
     <color name="slvl1_color">#C8DB47</color>
     <color name="slvl2_color">#F1E338</color>
