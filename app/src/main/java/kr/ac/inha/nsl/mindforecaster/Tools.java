@@ -55,6 +55,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -376,7 +377,7 @@ public class Tools {
             case 4:
                 return ResourcesCompat.getColor(context.getResources(), R.color.slvl4_color, null);
             default:
-                return 0;
+                return ResourcesCompat.getColor(context.getResources(), R.color.default_event_color, null);
         }
     }
 
@@ -657,8 +658,9 @@ abstract class MyRunnable implements Runnable {
     }
 }
 
-class Event {
+class Event implements Comparable<Event> {
     static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
+
     //region Variables
     static Event[] currentEventBank;
     private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
@@ -720,6 +722,8 @@ class Event {
             else if (evStartTime <= periodFrom && periodTill <= evEndTime)
                 res.add(event);
         }
+
+        Collections.sort(res);
 
         return res;
     }
@@ -1002,6 +1006,11 @@ class Event {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int compareTo(Event comparedTo) {
+        return startTime.compareTo(comparedTo.startTime);
     }
 }
 

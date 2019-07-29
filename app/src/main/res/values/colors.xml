@@ -40,6 +40,7 @@
     <color name="slvl2_color">#F1E338</color>
     <color name="slvl3_color">#F47827</color>
     <color name="slvl4_color">#EE2229</color>
+    <color name="default_event_color">#777</color>
 
     <color name="textColor">#444</color>
     <color name="dark_blue">#44f</color>
