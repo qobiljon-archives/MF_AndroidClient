@@ -114,7 +114,7 @@ public class ActivityInterventions extends AppCompatActivity {
             }
         });
 
-        TextView eventTitle = findViewById(R.id.event_title_text_view);
+        TextView eventTitle = findViewById(R.id.text_event_title);
         eventTitle.setText(getString(R.string.current_event_title, getIntent().getStringExtra("eventTitle")));
 
         intervTitleText.setVisibility(View.GONE);
@@ -156,8 +156,8 @@ public class ActivityInterventions extends AppCompatActivity {
         if (sortRadioGroup.getCheckedRadioButtonId() == R.id.sort_by_recent_choice_radio_button) {
             HashMap<String, Long> intervLastPickedTime = new HashMap<>();
             for (Event event : Event.currentEventBank)
-                if (event.getIntervention() != null)
-                    intervLastPickedTime.put(event.getIntervention(), event.getInterventionLastPickedTime());
+                if (event.getInterventionDescription() != null)
+                    intervLastPickedTime.put(event.getInterventionDescription(), event.getInterventionLastPickedTime());
             for (Intervention intervention : interventions)
                 if (!intervLastPickedTime.containsKey(intervention.getDescription()))
                     intervLastPickedTime.put(intervention.getDescription(), Long.MIN_VALUE);
@@ -188,7 +188,7 @@ public class ActivityInterventions extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        intervTitleText.setText(ActivityEvent.event.getIntervention());
+        intervTitleText.setText(ActivityEvent.event.getInterventionDescription());
 
         switch (ActivityEvent.event.getInterventionReminder()) {
             case 0:

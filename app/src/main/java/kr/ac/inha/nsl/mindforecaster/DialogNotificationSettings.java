@@ -107,7 +107,7 @@ public class DialogNotificationSettings extends DialogFragment {
             }
         });
 
-        root.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
+        root.findViewById(R.id.cancel_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dismiss();

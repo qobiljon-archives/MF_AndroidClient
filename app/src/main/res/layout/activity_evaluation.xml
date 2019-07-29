@@ -12,7 +12,7 @@
         android:background="@color/inner_activity_actionbar">
 
         <TextView
-            android:id="@+id/btn_cancel"
+            android:id="@+id/cancel_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
@@ -70,7 +70,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/event_title_text_view"
+                    android:id="@+id/text_event_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:maxLines="2"

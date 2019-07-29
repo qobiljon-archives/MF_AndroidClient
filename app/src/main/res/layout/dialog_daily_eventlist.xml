@@ -30,9 +30,20 @@
             android:background="@android:color/transparent"
             android:contentDescription="@string/app_name"
             android:src="@drawable/img_add_event" />
-
-
     </FrameLayout>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/daily_elements_linear_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

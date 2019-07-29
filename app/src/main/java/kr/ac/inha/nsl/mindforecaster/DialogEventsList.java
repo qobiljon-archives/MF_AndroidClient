@@ -26,16 +26,14 @@ public class DialogEventsList extends DialogFragment {
         };
     }
 
-    // region Variables
-    private ViewGroup root;
     private View.OnClickListener onEventClickListener;
     // endregion
 
     // region Override
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        root = (ViewGroup) inflater.inflate(R.layout.dialog_daily_eventlist, container, true);
-        init();
+        ViewGroup root = (ViewGroup) inflater.inflate(R.layout.dialog_daily_eventlist, container, true);
+        init(root);
         return root;
     }
 
@@ -48,7 +46,8 @@ public class DialogEventsList extends DialogFragment {
     }
     // endregion
 
-    private void init() {
+    private void init(ViewGroup root) {
+        // region Variables
         root.findViewById(R.id.btn_add_from_dialog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -72,37 +71,36 @@ public class DialogEventsList extends DialogFragment {
                 selectedDay.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
         ));
 
+        ViewGroup elementsLinearLayout = root.findViewById(R.id.daily_elements_linear_layout);
         ArrayList<Event> dayEvents = Event.getOneDayEvents(selectedDay);
         for (Event event : dayEvents) {
-            getActivity().getLayoutInflater().inflate(R.layout.event_element_dailyview, root);
-            ViewGroup view = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            getActivity().getLayoutInflater().inflate(R.layout.event_element_dailyview, elementsLinearLayout);
+            ViewGroup view = (ViewGroup) elementsLinearLayout.getChildAt(elementsLinearLayout.getChildCount() - 1);
             view.setTag(event.getEventId());
             view.setOnClickListener(onEventClickListener);
-            TextView titleText = view.findViewById(R.id.event_title_text_view);
-            TextView dateText = view.findViewById(R.id.event_date_text_view);
-            TextView isEvaluated = view.findViewById(R.id.is_evaluated);
-            TextView stressLevel = view.findViewById(R.id.stress_lvl_box);
+
+            TextView eventTitleTextView = view.findViewById(R.id.text_event_title);
+            TextView eventPeriodTextView = view.findViewById(R.id.text_event_period);
+            TextView evaluationDoneTextView = view.findViewById(R.id.text_evaluation_done);
+            TextView stressLevelTextView = view.findViewById(R.id.text_stress_level);
 
             if (selectedDay.before(Calendar.getInstance(Locale.getDefault()))) {
                 if (event.isEvaluated()) {
-                    isEvaluated.setText(getString(R.string.evaluated));
-                    stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getRealStressLevel()));
-                    stressLevel.setText(String.valueOf(event.getRealStressLevel()));
+                    evaluationDoneTextView.setText(getString(R.string.evaluated));
+                    stressLevelTextView.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getRealStressLevel()));
+                    stressLevelTextView.setText(event.getRealStressLevel() == -1 ? "N/A" : String.valueOf(event.getRealStressLevel()));
                 } else {
-                    isEvaluated.setText(getString(R.string.not_evaluated));
-                    stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
-                    stressLevel.setText(String.valueOf(event.getStressLevel()));
+                    evaluationDoneTextView.setText(getString(R.string.not_evaluated));
+                    stressLevelTextView.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
+                    stressLevelTextView.setText(event.getStressLevel() == -1 ? "N/A" : String.valueOf(event.getStressLevel()));
                 }
             } else {
-                isEvaluated.setVisibility(View.GONE);
-                stressLevel.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
-                stressLevel.setText(String.valueOf(event.getStressLevel()));
+                evaluationDoneTextView.setVisibility(View.GONE);
+                stressLevelTextView.setBackgroundColor(Tools.stressLevelToColor(getActivity(), event.getStressLevel()));
+                stressLevelTextView.setText(event.getStressLevel() == -1 ? "N/A" : String.valueOf(event.getStressLevel()));
             }
-
-
-            titleText.setText(event.getTitle());
-
-            dateText.setText(String.format(Locale.getDefault(),
+            eventTitleTextView.setText(event.getTitle());
+            eventPeriodTextView.setText(String.format(Locale.getDefault(),
                     "%02d:%02d - %02d:%02d",
                     event.getStartTime().get(Calendar.HOUR_OF_DAY),
                     event.getStartTime().get(Calendar.MINUTE),
@@ -112,8 +110,8 @@ public class DialogEventsList extends DialogFragment {
         }
 
         //Inflating a "Close" button to the end of dialog
-        getActivity().getLayoutInflater().inflate(R.layout.button_close, root);
-        Button btnClose = root.findViewById(R.id.btn_close);
+        getActivity().getLayoutInflater().inflate(R.layout.button_close, elementsLinearLayout);
+        Button btnClose = elementsLinearLayout.findViewById(R.id.close_button);
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

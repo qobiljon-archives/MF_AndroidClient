@@ -52,10 +52,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +83,7 @@ public class Tools {
     private static ExecutorService executor = Executors.newCachedThreadPool();
 
     private static SparseArray<PendingIntent> eventNotifs = new SparseArray<>();
-    private static SparseArray<PendingIntent> intervNotifs = new SparseArray<>();
+    private static SparseArray<PendingIntent> interventionNotificationIdIntentMap = new SparseArray<>();
     private static SparseArray<PendingIntent> sundayNotifs = new SparseArray<>();
     private static SparseArray<PendingIntent> dailyNotifs = new SparseArray<>();
 
@@ -377,7 +377,7 @@ public class Tools {
             case 4:
                 return ResourcesCompat.getColor(context.getResources(), R.color.slvl4_color, null);
             default:
-                return ResourcesCompat.getColor(context.getResources(), R.color.default_event_color, null);
+                return ResourcesCompat.getColor(context.getResources(), R.color.default_intervention_color, null);
         }
     }
 
@@ -451,9 +451,9 @@ public class Tools {
 
     static void cacheSurveys(Context context, JSONArray survey1, JSONArray survey2, JSONArray survey3) throws JSONException {
         JSONObject obj = new JSONObject();
-        obj.put("survey1", survey1);
-        obj.put("survey2", survey2);
-        obj.put("survey3", survey3);
+        obj.put("Part 1", survey1);
+        obj.put("Part 2", survey2);
+        obj.put("Part 3", survey3);
         Tools.writeToFile(context, "survey.json", obj.toString());
     }
 
@@ -496,9 +496,9 @@ public class Tools {
         try {
             JSONObject obj = new JSONObject(readFromFile(context, "survey.json"));
             return new JSONArray[]{
-                    obj.getJSONArray("survey1"),
-                    obj.getJSONArray("survey2"),
-                    obj.getJSONArray("survey3")
+                    obj.getJSONArray("Part 1"),
+                    obj.getJSONArray("Part 2"),
+                    obj.getJSONArray("Part 3")
             };
         } catch (JSONException e) {
             e.printStackTrace();
@@ -549,39 +549,65 @@ public class Tools {
         eventNotifs.put((int) event_id, pendingIntent);
     }
 
-    static void addInterventionNotification(Context context, Calendar when, long event_id, String intervText, String eventText) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    static void addInterventionNotification(Context context, int interventionNotificationId, long interventionNotificationTime, Event event) {
         Intent intent = new Intent(context, AlarmReceiverIntervention.class);
-        intent.putExtra("Content1", intervText);
-        intent.putExtra("Content2", eventText);
-        intent.putExtra("notification_id", event_id);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, (int) event_id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        if (alarmManager != null)
-            alarmManager.set(AlarmManager.RTC_WAKEUP, when.getTimeInMillis(), pendingIntent);
-        intervNotifs.put((int) event_id, pendingIntent);
+        intent.putExtra("notification_id", interventionNotificationId);
+        intent.putExtra("intervention_reminder_title", context.getString(
+                R.string.intervention_reminder_title,
+                event.getInterventionDescription()
+        ));
+        intent.putExtra("intervention_reminder_description", context.getString(
+                R.string.intervention_reminder_description,
+                event.getInterventionDescription(),
+                Math.abs(event.getInterventionReminder()),
+                event.getInterventionReminder() < 0 ? "before" : "after",
+                event.getTitle()
+        ));
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm (EEE, dd/MM/yyyy)", Locale.ENGLISH);
+        intent.putExtra("intervention_reminder_event_period", context.getString(
+                R.string.intervention_reminder_event_period,
+                interventionNotificationTime < event.getStartTime().getTimeInMillis() ? "starts" : "finished",
+                interventionNotificationTime < event.getStartTime().getTimeInMillis() ? timeFormat.format(event.getStartTime().getTime()) : timeFormat.format(event.getEndTime().getTime())
+        ));
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                interventionNotificationId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                interventionNotificationTime,
+                pendingIntent
+        );
+
+        interventionNotificationIdIntentMap.put(interventionNotificationId, pendingIntent);
     }
 
-    static void cancelNotification(Context context, int notif_id) {
+    static void cancelNotification(Context context, int notificationId) {
         SparseArray<PendingIntent> map;
-        if (dailyNotifs.get(notif_id, null) != null)
+        if (dailyNotifs.get(notificationId, null) != null)
             map = dailyNotifs;
-        else if (sundayNotifs.get(notif_id, null) != null)
+        else if (sundayNotifs.get(notificationId, null) != null)
             map = sundayNotifs;
-        else if (eventNotifs.get(notif_id, null) != null)
+        else if (eventNotifs.get(notificationId, null) != null)
             map = eventNotifs;
-        else if (intervNotifs.get(notif_id, null) != null)
-            map = intervNotifs;
+        else if (interventionNotificationIdIntentMap.get(notificationId, null) != null)
+            map = interventionNotificationIdIntentMap;
         else
             return;
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager != null)
-            alarmManager.cancel(map.get(notif_id));
+            alarmManager.cancel(map.get(notificationId));
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null)
-            notificationManager.cancel(notif_id);
+            notificationManager.cancel(notificationId);
 
-        map.remove(notif_id);
+        map.remove(notificationId);
     }
 
 
@@ -658,9 +684,8 @@ abstract class MyRunnable implements Runnable {
     }
 }
 
-class Event implements Comparable<Event> {
+class Event {
     static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
-
     //region Variables
     static Event[] currentEventBank;
     private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
@@ -723,8 +748,6 @@ class Event implements Comparable<Event> {
                 res.add(event);
         }
 
-        Collections.sort(res);
-
         return res;
     }
     //endregion
@@ -763,57 +786,22 @@ class Event implements Comparable<Event> {
     }
 
     static void updateInterventionReminders(Context context) {
-        Calendar today = Calendar.getInstance(Locale.getDefault()), calIntervBeforeEvent, calIntervAfterEvent;
-        for (Event event : currentEventBank) {
-            Calendar calIntervNotifId = Calendar.getInstance(Locale.getDefault());
-            calIntervNotifId.setTimeInMillis(event.getStartTime().getTimeInMillis());
-            calIntervNotifId.add(Calendar.MILLISECOND, 1);
+        long nowTimestamp = Calendar.getInstance(Locale.getDefault()).getTimeInMillis();
 
-            if (event.getInterventionReminder() < 0) {
-                calIntervBeforeEvent = event.getStartTime();
-                calIntervBeforeEvent.add(Calendar.MINUTE, event.getInterventionReminder());
-                if (calIntervBeforeEvent.before(today)) {
-                    Tools.cancelNotification(context, (int) calIntervNotifId.getTimeInMillis());
-                } else
+        for (Event event : currentEventBank) {
+            int interventionNotificationId = (int) event.getStartTime().getTimeInMillis();
+            long interventionNotificationTime = event.getInterventionReminder() < 0 ? event.getStartTime().getTimeInMillis() : event.getEndTime().getTimeInMillis();
+            interventionNotificationTime += event.getInterventionReminder() * 60 * 1000;
+
+            if (event.getInterventionReminder() != 0) {
+                if (interventionNotificationTime < nowTimestamp)
+                    Tools.cancelNotification(context, interventionNotificationId);
+                else
                     Tools.addInterventionNotification(
                             context,
-                            calIntervBeforeEvent,
-                            (int) calIntervNotifId.getTimeInMillis(),
-                            String.format(
-                                    Locale.getDefault(),
-                                    "%s: %s",
-                                    context.getString(R.string.intervention),
-                                    event.getIntervention()
-                            ),
-                            String.format(
-                                    Locale.getDefault(),
-                                    "%s: %s",
-                                    context.getString(R.string.upcoming_event),
-                                    event.getTitle()
-                            )
-                    );
-            } else if (event.getInterventionReminder() != 0) {
-                calIntervAfterEvent = event.getEndTime();
-                calIntervAfterEvent.add(Calendar.MINUTE, event.getInterventionReminder());
-                if (calIntervAfterEvent.before(today)) {
-                    Tools.cancelNotification(context, (int) calIntervNotifId.getTimeInMillis());
-                } else
-                    Tools.addInterventionNotification(
-                            context,
-                            calIntervAfterEvent,
-                            (int) calIntervNotifId.getTimeInMillis(),
-                            String.format(
-                                    Locale.getDefault(),
-                                    "%s: %s",
-                                    context.getString(R.string.intervention),
-                                    event.getIntervention()
-                            ),
-                            String.format(
-                                    Locale.getDefault(),
-                                    "%s: %s",
-                                    context.getString(R.string.passed_event),
-                                    event.getTitle()
-                            )
+                            (int) interventionNotificationId,
+                            interventionNotificationTime,
+                            event
                     );
             }
         }
@@ -871,7 +859,7 @@ class Event implements Comparable<Event> {
         this.title = title;
     }
 
-    String getIntervention() {
+    String getInterventionDescription() {
         return intervention;
     }
 
@@ -961,7 +949,7 @@ class Event implements Comparable<Event> {
             eventJson.put("realStressLevel", getRealStressLevel());
             eventJson.put("startTime", getStartTime().getTimeInMillis());
             eventJson.put("endTime", getEndTime().getTimeInMillis());
-            eventJson.put("intervention", getIntervention());
+            eventJson.put("intervention", getInterventionDescription());
             eventJson.put("interventionReminder", getInterventionReminder());
             eventJson.put("interventionLastPickedTime", getInterventionLastPickedTime());
             eventJson.put("stressType", getStressType());
@@ -1006,11 +994,6 @@ class Event implements Comparable<Event> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public int compareTo(Event comparedTo) {
-        return startTime.compareTo(comparedTo.startTime);
     }
 }
 

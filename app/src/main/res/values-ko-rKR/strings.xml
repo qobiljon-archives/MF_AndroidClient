@@ -89,7 +89,7 @@
     <string name="event_note">Event note (optional)</string>
     <string name="edit">Edit</string>
     <string name="delete">삭제</string>
-    <string name="btn_close">Close</string>
+    <string name="confirm">Close</string>
     <string name="more">More</string>
     <string name="intervention_method">중재방안 등록</string>
     <string name="self">self</string>

@@ -100,7 +100,7 @@ public class ActivityEvent extends AppCompatActivity {
                 case INTERVENTION_ACTIVITY:
                     event.setIntervention(ActivityInterventions.resultIntervention.getDescription());
                     event.setInterventionReminder(ActivityInterventions.resultReminderMinutes);
-                    selectedInterv.setText(event.getIntervention());
+                    selectedInterv.setText(event.getInterventionDescription());
                     switch (ActivityInterventions.resultReminderMinutes) {
                         case -1440:
                             intervReminderTxt.setText(getString(R.string.intervention_reminder_text, getString(R.string._1_day_before)));
@@ -179,7 +179,7 @@ public class ActivityEvent extends AppCompatActivity {
         eventNotificationGroup = findViewById(R.id.event_notification_group);
         intervReminderTxt = findViewById(R.id.txt_interv_reminder_time);
         saveButton = findViewById(R.id.btn_create);
-        cancelButton = findViewById(R.id.btn_cancel);
+        cancelButton = findViewById(R.id.cancel_button);
         deleteButton = findViewById(R.id.btn_delete);
         customNotifRadioButton = findViewById(R.id.radio_btn_custom);
         ViewGroup postEventLayout = findViewById(R.id.postEventLayout);
@@ -395,7 +395,7 @@ public class ActivityEvent extends AppCompatActivity {
     }
 
     private void fillOutExistingValues() {
-        ActivityInterventions.resultIntervention = Intervention.getInterventionByDescription(event.getIntervention());
+        ActivityInterventions.resultIntervention = Intervention.getInterventionByDescription(event.getInterventionDescription());
         ActivityInterventions.resultReminderMinutes = event.getInterventionReminder();
 
         eventTitle.setText(event.getTitle());
@@ -465,7 +465,7 @@ public class ActivityEvent extends AppCompatActivity {
                 event.getStartTime().get(Calendar.MILLISECOND) == 0 && event.getEndTime().get(Calendar.HOUR_OF_DAY) == 0 && event.getEndTime().get(Calendar.MINUTE) == 0 &&
                 event.getEndTime().get(Calendar.SECOND) == 0 && event.getEndTime().get(Calendar.MILLISECOND) == 0
         );
-        selectedInterv.setText(event.getIntervention());
+        selectedInterv.setText(event.getInterventionDescription());
         switch (event.getInterventionReminder()) {
             case 0:
                 intervReminderTxt.setVisibility(View.GONE);
@@ -641,7 +641,7 @@ public class ActivityEvent extends AppCompatActivity {
             interventionTextView.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.icon_intervention), null, getDrawable(R.drawable.img_collapse), null);
             interventionDetails.getParent().requestChildFocus(interventionDetails, interventionDetails);
 
-            if (event.getIntervention() != null && event.getIntervention().length() > 0) {
+            if (event.getInterventionDescription() != null && event.getInterventionDescription().length() > 0) {
                 switch (event.getInterventionReminder()) {
                     case -1440:
                         intervReminderTxt.setText(getResources().getString(R.string.intervention_reminder_text, getResources().getString(R.string._1_day_before)));
@@ -1021,11 +1021,11 @@ public class ActivityEvent extends AppCompatActivity {
                     params.add(new BasicNameValuePair("stressLevel", String.valueOf(event.getStressLevel())));
                     params.add(new BasicNameValuePair("startTime", String.valueOf(event.getStartTime().getTimeInMillis() / 1000)));
                     params.add(new BasicNameValuePair("endTime", String.valueOf(event.getEndTime().getTimeInMillis() / 1000)));
-                    if (event.getIntervention() == null) {
+                    if (event.getInterventionDescription() == null) {
                         params.add(new BasicNameValuePair("intervention", ""));
                         params.add(new BasicNameValuePair("interventionReminder", "0"));
                     } else {
-                        params.add(new BasicNameValuePair("intervention", event.getIntervention()));
+                        params.add(new BasicNameValuePair("intervention", event.getInterventionDescription()));
                         params.add(new BasicNameValuePair("interventionReminder", String.valueOf(event.getInterventionReminder())));
                     }
                     params.add(new BasicNameValuePair("stressType", event.getStressType()));
@@ -1049,7 +1049,7 @@ public class ActivityEvent extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Intervention intervention = Intervention.getInterventionByDescription(event.getIntervention());
+                                    Intervention intervention = Intervention.getInterventionByDescription(event.getInterventionDescription());
                                     if (intervention != null)
                                         intervention.increaseNumberOfSelections();
                                     Toast.makeText(ActivityEvent.this, ActivityEvent.event.isNewEvent() ? "Event successfully created!" : "Event has been edited.", Toast.LENGTH_SHORT).show();
@@ -1266,7 +1266,7 @@ public class ActivityEvent extends AppCompatActivity {
         tabEvaluation.setText(getString(R.string.re_evaluation));
         ViewGroup intervView = findViewById(R.id.result_details_interv);
         SeekBar expectedStressLevelSeek = findViewById(R.id.expected_stress_level_seekbar);
-        TextView intervName = findViewById(R.id.intervention_name);
+        TextView intervName = findViewById(R.id.description_text);
         TextView expectedStressReason = findViewById(R.id.expected_strs_reason_text);
         realStressLevelSeek = findViewById(R.id.real_stresslvl_seekbar);
         intervEffectiveness = findViewById(R.id.intervention_effectiveness);
@@ -1293,9 +1293,9 @@ public class ActivityEvent extends AppCompatActivity {
         expectedStressReason.setText(event.getStressCause());
         ((ViewGroup) expectedStressReason.getParent()).setVisibility(expectedStressReason.length() == 0 ? View.GONE : View.VISIBLE);
 
-        if (event.getIntervention() != null) {
+        if (event.getInterventionDescription() != null) {
             intervView.setVisibility(View.VISIBLE);
-            intervName.setText(getResources().getString(R.string.current_interv_title, event.getIntervention()));
+            intervName.setText(getResources().getString(R.string.current_interv_title, event.getInterventionDescription()));
         } else {
             intervView.setVisibility(View.GONE);
         }

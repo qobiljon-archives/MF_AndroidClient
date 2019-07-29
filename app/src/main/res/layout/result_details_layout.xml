@@ -189,7 +189,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/intervention_name"
+            android:id="@+id/description_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLines="2"

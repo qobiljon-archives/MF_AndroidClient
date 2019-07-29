@@ -126,10 +126,10 @@ public class ActivityMain extends AppCompatActivity {
     private void showTodayEvents(long dateTimeMillis) {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-        if (prev != null) {
+        if (prev != null)
             ft.remove(prev);
-        }
         ft.addToBackStack(null);
+
         DialogFragment dialogFragment = new DialogEventsList();
         Bundle args = new Bundle();
         args.putLong("selectedDayMillis", dateTimeMillis);

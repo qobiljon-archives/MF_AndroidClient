@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,9 +26,9 @@ import java.util.Locale;
 public class ActivitySurvey extends AppCompatActivity {
 
     //region Variables
-    private ViewGroup surveyMainHolder1, surveyChildHolder1;
-    private ViewGroup surveyMainHolder2, surveyChildHolder2;
-    private ViewGroup surveyMainHolder3, surveyChildHolder3;
+    private ViewGroup surveyPart1Root, surveyPart1Content;
+    private ViewGroup surveyPart2Root, surveyPart2Content;
+    private ViewGroup surveyPart3Root, surveyPart3Content;
     //endregion
 
     // region Override
@@ -35,26 +36,24 @@ public class ActivitySurvey extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey);
-        init();
+        if (!Tools.isNetworkAvailable()) {
+            Button cancelButton = findViewById(R.id.cancel_button);
+            Toast.makeText(this, "Your phone has internet connectivity issue, please connect to internet first!", Toast.LENGTH_SHORT).show();
+            cancelButton.performClick();
+        } else
+            init();
     }
     // endregion
 
     private void init() {
-        surveyMainHolder1 = findViewById(R.id.survey1_main_holder);
-        surveyMainHolder2 = findViewById(R.id.survey2_main_holder);
-        surveyMainHolder3 = findViewById(R.id.survey3_main_holder);
+        surveyPart1Root = findViewById(R.id.survey1_main_holder);
+        surveyPart2Root = findViewById(R.id.survey2_main_holder);
+        surveyPart3Root = findViewById(R.id.survey3_main_holder);
 
-        surveyChildHolder1 = findViewById(R.id.survey1_child_holder);
-        surveyChildHolder2 = findViewById(R.id.survey2_child_holder);
-        surveyChildHolder3 = findViewById(R.id.survey3_child_holder);
+        surveyPart1Content = findViewById(R.id.survey1_child_holder);
+        surveyPart2Content = findViewById(R.id.survey2_child_holder);
+        surveyPart3Content = findViewById(R.id.survey3_child_holder);
 
-        loadTheSurvey();
-    }
-
-    private void loadTheSurvey() {
-        surveyChildHolder1.removeAllViews();
-        surveyChildHolder2.removeAllViews();
-        surveyChildHolder3.removeAllViews();
 
         if (Tools.isNetworkAvailable())
             Tools.execute(new MyRunnable(
@@ -75,46 +74,43 @@ public class ActivitySurvey extends AppCompatActivity {
                         params.add(new BasicNameValuePair("password", password));
 
                         JSONObject res = new JSONObject(Tools.post(url, params));
-                        JSONObject survJson = res.getJSONObject("surveys");
+                        JSONObject surveysJson = res.getJSONObject("surveys");
                         switch (res.getInt("result")) {
                             case Tools.RES_OK:
                                 runOnUiThread(new MyRunnable(
                                         activity,
-                                        survJson.getJSONArray("Part 1"),
-                                        survJson.getJSONArray("Part 2"),
-                                        survJson.getJSONArray("Part 3")
+                                        surveysJson.getJSONArray("Part 1"),
+                                        surveysJson.getJSONArray("Part 2"),
+                                        surveysJson.getJSONArray("Part 3")
                                 ) {
                                     @Override
                                     public void run() {
-                                        JSONArray arrSurvey1 = (JSONArray) args[0];
-                                        JSONArray arrSurvey2 = (JSONArray) args[1];
-                                        JSONArray arrSurvey3 = (JSONArray) args[2];
+                                        JSONArray surveyPart1 = (JSONArray) args[0];
+                                        JSONArray surveyPart2 = (JSONArray) args[1];
+                                        JSONArray surveyPart3 = (JSONArray) args[2];
 
                                         LayoutInflater inflater = getLayoutInflater();
                                         try {
-                                            for (int n = 0; n < arrSurvey1.length(); n++) {
-                                                inflater.inflate(R.layout.survey1_element, surveyChildHolder1);
-                                                TextView interv_text = surveyChildHolder1.getChildAt(n).findViewById(R.id.txt_survey_element);
-                                                JSONObject object = arrSurvey1.getJSONObject(n);
-                                                String survTxt = String.format(Locale.getDefault(), "%d. %s", n + 1, object.getString("key"));
-                                                interv_text.setText(survTxt);
+                                            for (int n = 0; n < surveyPart1.length(); n++) {
+                                                inflater.inflate(R.layout.survey1_element, surveyPart1Content);
+                                                TextView titleText = surveyPart1Content.getChildAt(n).findViewById(R.id.txt_survey_element);
+                                                String question = String.format(Locale.getDefault(), "%d. %s", n + 1, surveyPart1.getString(n));
+                                                titleText.setText(question);
                                             }
-                                            for (int n = 0; n < arrSurvey2.length(); n++) {
-                                                inflater.inflate(R.layout.survey2_element, surveyChildHolder2);
-                                                TextView interv_text = surveyChildHolder2.getChildAt(n).findViewById(R.id.txt_survey_element);
-                                                JSONObject object = arrSurvey2.getJSONObject(n);
-                                                String survTxt = (n + 1) + ". " + object.getString("key");
-                                                interv_text.setText(survTxt);
+                                            for (int n = 0; n < surveyPart2.length(); n++) {
+                                                inflater.inflate(R.layout.survey2_element, surveyPart2Content);
+                                                TextView titleText = surveyPart2Content.getChildAt(n).findViewById(R.id.txt_survey_element);
+                                                String question = String.format(Locale.getDefault(), "%d. %s", n + 1, surveyPart2.getString(n));
+                                                titleText.setText(question);
                                             }
-                                            for (int n = 0; n < arrSurvey3.length(); n++) {
-                                                inflater.inflate(R.layout.survey3_element, surveyChildHolder3);
-                                                TextView interv_text = surveyChildHolder3.getChildAt(n).findViewById(R.id.txt_survey_element);
-                                                JSONObject object = arrSurvey3.getJSONObject(n);
-                                                String survTxt = (n + 1) + ". " + object.getString("key");
-                                                interv_text.setText(survTxt);
+                                            for (int n = 0; n < surveyPart3.length(); n++) {
+                                                inflater.inflate(R.layout.survey3_element, surveyPart3Content);
+                                                TextView titleText = surveyPart3Content.getChildAt(n).findViewById(R.id.txt_survey_element);
+                                                String question = String.format(Locale.getDefault(), "%d. %s", n + 1, surveyPart3.getString(n));
+                                                titleText.setText(question);
                                             }
 
-                                            Tools.cacheSurveys(ActivitySurvey.this, arrSurvey1, arrSurvey2, arrSurvey3);
+                                            Tools.cacheSurveys(ActivitySurvey.this, surveyPart1, surveyPart2, surveyPart3);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
@@ -145,22 +141,22 @@ public class ActivitySurvey extends AppCompatActivity {
 
                 LayoutInflater inflater = getLayoutInflater();
                 for (int n = 0; n < offlineSurvey[0].length(); n++) {
-                    inflater.inflate(R.layout.survey1_element, surveyChildHolder1);
-                    TextView interv_text = surveyChildHolder1.getChildAt(n).findViewById(R.id.txt_survey_element);
+                    inflater.inflate(R.layout.survey1_element, surveyPart1Content);
+                    TextView interv_text = surveyPart1Content.getChildAt(n).findViewById(R.id.txt_survey_element);
                     JSONObject object = offlineSurvey[0].getJSONObject(n);
                     String survTxt = (n + 1) + ". " + object.getString("key");
                     interv_text.setText(survTxt);
                 }
                 for (int n = 0; n < offlineSurvey[1].length(); n++) {
-                    inflater.inflate(R.layout.survey2_element, surveyChildHolder2);
-                    TextView interv_text = surveyChildHolder2.getChildAt(n).findViewById(R.id.txt_survey_element);
+                    inflater.inflate(R.layout.survey2_element, surveyPart2Content);
+                    TextView interv_text = surveyPart2Content.getChildAt(n).findViewById(R.id.txt_survey_element);
                     JSONObject object = offlineSurvey[1].getJSONObject(n);
                     String survTxt = (n + 1) + ". " + object.getString("key");
                     interv_text.setText(survTxt);
                 }
                 for (int n = 0; n < offlineSurvey[2].length(); n++) {
-                    inflater.inflate(R.layout.survey3_element, surveyChildHolder3);
-                    TextView intervention_description = surveyChildHolder3.getChildAt(n).findViewById(R.id.txt_survey_element);
+                    inflater.inflate(R.layout.survey3_element, surveyPart3Content);
+                    TextView intervention_description = surveyPart3Content.getChildAt(n).findViewById(R.id.txt_survey_element);
                     JSONObject object = offlineSurvey[2].getJSONObject(n);
                     String survTxt = (n + 1) + ". " + object.getString("key");
                     intervention_description.setText(survTxt);
@@ -172,32 +168,32 @@ public class ActivitySurvey extends AppCompatActivity {
         }
     }
 
-    public void expandSurveyHolder1(View view) {
-        if (surveyMainHolder1.getVisibility() == View.VISIBLE) {
-            surveyMainHolder1.setVisibility(View.GONE);
+    public void expandSurveyPart1(View view) {
+        if (surveyPart1Root.getVisibility() == View.VISIBLE) {
+            surveyPart1Root.setVisibility(View.GONE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_expand), null);
         } else {
-            surveyMainHolder1.setVisibility(View.VISIBLE);
+            surveyPart1Root.setVisibility(View.VISIBLE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_collapse), null);
         }
     }
 
-    public void expandSurveyHolder2(View view) {
-        if (surveyMainHolder2.getVisibility() == View.VISIBLE) {
-            surveyMainHolder2.setVisibility(View.GONE);
+    public void expandSurveyPart2(View view) {
+        if (surveyPart2Root.getVisibility() == View.VISIBLE) {
+            surveyPart2Root.setVisibility(View.GONE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_expand), null);
         } else {
-            surveyMainHolder2.setVisibility(View.VISIBLE);
+            surveyPart2Root.setVisibility(View.VISIBLE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_collapse), null);
         }
     }
 
-    public void expandSurveyHolder3(View view) {
-        if (surveyMainHolder3.getVisibility() == View.VISIBLE) {
-            surveyMainHolder3.setVisibility(View.GONE);
+    public void expandSurveyPart3(View view) {
+        if (surveyPart3Root.getVisibility() == View.VISIBLE) {
+            surveyPart3Root.setVisibility(View.GONE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_expand), null);
         } else {
-            surveyMainHolder3.setVisibility(View.VISIBLE);
+            surveyPart3Root.setVisibility(View.VISIBLE);
             ((TextView) view).setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.img_collapse), null);
         }
     }
@@ -218,29 +214,19 @@ public class ActivitySurvey extends AppCompatActivity {
 
                     List<NameValuePair> params = new ArrayList<>();
                     try {
-                        StringBuilder survey1 = new StringBuilder();
-                        for (int n = 0; n < surveyChildHolder1.getChildCount(); n++)
-                            survey1.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder1.getChildAt(n).findViewById(R.id.scale)).getProgress()));
-                        if (survey1.length() > 0)
-                            survey1.deleteCharAt(survey1.length() - 1);
-
-                        StringBuilder survey2 = new StringBuilder();
-                        for (int n = 0; n < surveyChildHolder2.getChildCount(); n++)
-                            survey2.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder2.getChildAt(n).findViewById(R.id.scale)).getProgress()));
-                        if (survey2.length() > 0)
-                            survey2.deleteCharAt(survey1.length() - 1);
-
-                        StringBuilder survey3 = new StringBuilder();
-                        for (int n = 0; n < surveyChildHolder3.getChildCount(); n++)
-                            survey3.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyChildHolder3.getChildAt(n).findViewById(R.id.scale)).getProgress()));
-                        if (survey3.length() > 0)
-                            survey3.deleteCharAt(survey1.length() - 1);
+                        StringBuilder values = new StringBuilder();
+                        for (int n = 0; n < surveyPart1Content.getChildCount(); n++)
+                            values.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyPart1Content.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        for (int n = 0; n < surveyPart2Content.getChildCount(); n++)
+                            values.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyPart2Content.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        for (int n = 0; n < surveyPart3Content.getChildCount(); n++)
+                            values.append(String.format(Locale.getDefault(), "%d,", ((SeekBar) surveyPart3Content.getChildAt(n).findViewById(R.id.scale)).getProgress()));
+                        if (values.length() > 0)
+                            values.deleteCharAt(values.length() - 1);
 
                         params.add(new BasicNameValuePair("username", username));
                         params.add(new BasicNameValuePair("password", password));
-                        params.add(new BasicNameValuePair("Part 1", survey1.toString()));
-                        params.add(new BasicNameValuePair("Part 2", survey2.toString()));
-                        params.add(new BasicNameValuePair("Part 3", survey3.toString()));
+                        params.add(new BasicNameValuePair("values", values.toString()));
 
                         JSONObject res = new JSONObject(Tools.post(url, params));
                         switch (res.getInt("result")) {
