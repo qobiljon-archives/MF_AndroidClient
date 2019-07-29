@@ -684,8 +684,11 @@ abstract class MyRunnable implements Runnable {
     }
 }
 
-class Event {
+class Event implements Comparable<Event> {
+    // region Constants
     static final int NO_REPEAT = 0, REPEAT_EVERYDAY = 1, REPEAT_WEEKLY = 2;
+    // endregion
+
     //region Variables
     static Event[] currentEventBank;
     private static LongSparseArray<Event> idEventMap = new LongSparseArray<>();
@@ -799,7 +802,7 @@ class Event {
                 else
                     Tools.addInterventionNotification(
                             context,
-                            (int) interventionNotificationId,
+                            interventionNotificationId,
                             interventionNotificationTime,
                             event
                     );
@@ -994,6 +997,11 @@ class Event {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int compareTo(Event o) {
+        return startTime.compareTo(o.startTime);
     }
 }
 
