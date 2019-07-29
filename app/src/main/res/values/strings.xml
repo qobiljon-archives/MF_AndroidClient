@@ -261,4 +261,6 @@
     <string name="intervention_reminder_description" translatable="false">Do \'%1$s\' %2$d minutes %3$s the event \'%4$s\'</string>
     <string name="intervention_reminder_event_period" translatable="false">Event %1$s at %2$s</string>
 
+    <string name="empty_list">Empty list</string>
+
 </resources>

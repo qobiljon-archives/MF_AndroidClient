@@ -233,5 +233,6 @@
     <string name="sort">정리:</string>
     <string name="popularity">인기순으로</string>
     <string name="recent_choice">최근 선택으로</string>
+    <string name="empty_list">목록이 비어있음</string>
 
 </resources>

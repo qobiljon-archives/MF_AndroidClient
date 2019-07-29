@@ -227,7 +227,7 @@ public class ActivityInterventions extends AppCompatActivity {
         }
     }
 
-    public void intervTabClick(View view) {
+    public void interventionTabClick(View view) {
         // Clear out visibility and previously set button color
         intervTitleText.setVisibility(View.GONE);
         intervChoice.setVisibility(View.GONE);
@@ -390,6 +390,9 @@ public class ActivityInterventions extends AppCompatActivity {
                                                     Tools.cachePeerInterventions(ActivityInterventions.this, interventions);
                                                     Intervention.setPeerInterventionBank(interventions);
                                                     intervListAdapter.notifyDataSetChanged();
+
+                                                    if (interventions.length == 0)
+                                                        Toast.makeText(activity, getString(R.string.empty_list), Toast.LENGTH_SHORT).show();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
